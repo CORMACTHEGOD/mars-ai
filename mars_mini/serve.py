@@ -74,7 +74,7 @@ def main() -> None:
     # Local-only for safety: DO NOT expose this experimental API to the Internet.
     server = ThreadingHTTPServer(("127.0.0.1", args.port), MarsHandler)
     print(f"Mars-1 Mini local API: http://127.0.0.1:{args.port}/health")
-    print("POST /api/chat with JSON {\\\"message\\\":\\\"hello\\\"}")
+    print('POST /api/chat with JSON: {"message": "hello"}')
     print("Not a public backend; press Ctrl+C to stop.")
     try:
         server.serve_forever()
