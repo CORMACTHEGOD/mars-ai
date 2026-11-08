@@ -1,0 +1,50 @@
+name: Check Mars data V3 (no model training)
+
+on:
+  pull_request:
+    paths:
+      - "mars_mini/dataset_v3.py"
+      - "mars_mini/score_v3.py"
+      - "mars_mini/__init__.py"
+      - "data_tests/**"
+      - ".github/workflows/check-mars-data-v3.yml"
+  push:
+    branches: [main]
+    paths:
+      - "mars_mini/dataset_v3.py"
+      - "mars_mini/score_v3.py"
+      - "mars_mini/__init__.py"
+      - "data_tests/**"
+      - ".github/workflows/check-mars-data-v3.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Validate data generation, split isolation and evaluator
+        run: python -m unittest discover -s data_tests -v
+
+      - name: Generate inspectable original dataset
+        run: python -m mars_mini.dataset_v3 --output artifacts/mars-data-v3
+
+      - name: Measure exact memorization-only baseline
+        run: |
+          python -m mars_mini.score_v3 --baseline --output artifacts/mars-data-v3/memorization-baseline.json
+          python -m json.tool artifacts/mars-data-v3/manifest.json > /dev/null
+
+      - name: Download dataset and baseline audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: mars-data-v3-audited
+          path: artifacts/mars-data-v3/
+          retention-days: 14
