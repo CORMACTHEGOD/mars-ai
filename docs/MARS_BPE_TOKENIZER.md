@@ -16,6 +16,31 @@ We've now built an **original byte-pair encoding (BPE)** tokenizer in Python tha
 
 **Fewer tokens do not necessarily mean better answers.** The benefit is packing more of a question and answer into a limited context and letting the network learn some frequent text fragments as units.
 
+## Verified first results — November 8, 2026
+
+The [first GitHub training comparison](https://github.com/CORMACTHEGOD/mars-ai/actions/runs/42504845033) **completed successfully**. It trained the two original random-weight models for 400 steps each on the same Mars Data V3 training split. It did not replace the live Mars models.
+
+| Measurement | Old byte tokenizer | Our new Mars BPE |
+|---|---:|---:|
+| Vocabulary size | 256 | 448 |
+| Original model parameters | 263,808 | 282,240 |
+| Selected checkpoint step | 400 | 400 |
+| Weighted validation prediction loss (bits per raw byte, lower is better) | 3.000 | **2.695** |
+| Held-out addition prediction loss (bits/byte) | **1.188** | 1.484 |
+| Held-out word-transform prediction loss (bits/byte) | **3.912** | 4.388 |
+| Held-out unseen-fact prediction loss (bits/byte) | 3.610 | **3.433** |
+
+Using 192 learned merges, the tokenizer used **63.07% fewer tokens on training text**, **48.65% fewer on validation text**, and **66.26% fewer on test text** versus raw UTF-8 bytes, measured with this dataset's example strings.
+
+**Interpretation:** BPE packs text much more efficiently and improves *rephrased familiar-answer prediction* at this training budget. But it was **worse** at held-out addition and word transformations, and only slightly better on held-out factual-answer likelihood. These are reference-answer likelihood measurements, not semantic correctness or general intelligence scores.
+
+Actual generated samples show the limitation:
+- Unseen question `What is 8 plus 6?` → byte model: `11.`; BPE model: `19.`; correct: `14.`.
+- Unseen `Reverse the letters in falcon.` → byte model: `reroro`; BPE model: `no`; correct: `noclaf`.
+- The BPE model sometimes repeated characters on familiar text questions.
+
+**We are deliberately not deploying these experimental model weights to Mars Chat.** Token compression is a real improvement in our infrastructure, but we need better training data, evaluation, and architecture to reliably answer novel questions.
+
 ## Controlled research experiment
 
 A separate new experiment trains two small original Transformers **from random weights** on exactly the same Mars Data V3 training examples:
