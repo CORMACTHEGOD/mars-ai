@@ -9,7 +9,7 @@
 const MODEL_URL = new URL("./models/mars1-mini.onnx", import.meta.url).href;
 const ORT_VERSION = "1.30.0";
 const ORT_BASE = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`;
-const ORT_MODULE = ORT_BASE + "esm/ort.min.js";
+const ORT_MODULE = ORT_BASE + "ort.min.mjs";
 const CONTEXT_SIZE = 96;
 const VOCAB_SIZE = 256;
 let loadPromise = null;
