@@ -32,6 +32,8 @@ def make_mars2_splits(seed: int = 42) -> Mars2Splits:
             (question, answer),
             (f"Please answer: {question}", answer),
             (f"Hey Mars, {question}", answer),
+            (f"Can you help with this question: {question}", answer),
+            (f"Answer briefly: {question}", answer),
         ))
         validation.append((f"Could you answer this question: {question}", answer))
 
