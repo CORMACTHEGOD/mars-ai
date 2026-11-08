@@ -27,17 +27,17 @@ def complete(
     model: MarsMini,
     prompt: str,
     max_new_tokens: int = 160,
-    temperature: float = 0.85,
+    temperature: float = 0.45,
 ) -> str:
     prefix = f"User: {prompt.strip()}\nMars:"
     original_tokens = encode(prefix)
     input_tokens = torch.tensor([original_tokens], dtype=torch.long)
     result = model.generate(
-        input_tokens, max_new_tokens=max_new_tokens, temperature=temperature
+        input_tokens, max_new_tokens=max_new_tokens, temperature=temperature, top_k=5
     )
     completion = decode(result[0].tolist()[len(original_tokens) :])
     # Don't present text from a fictional next turn as the same answer.
-    for stop in ("\nUser:", "\nConversation:", "\nMars chat example:"):
+    for stop in ("\n", "\r", "\nUser:", "\nConversation:", "\nMars chat example:"):
         completion = completion.split(stop, 1)[0]
     return completion.strip()
 
@@ -47,7 +47,7 @@ def main() -> None:
     parser.add_argument("--checkpoint", default="artifacts/mars1-mini/mars1-mini.pt")
     parser.add_argument("--prompt", default="hello")
     parser.add_argument("--new-tokens", type=int, default=160)
-    parser.add_argument("--temperature", type=float, default=0.85)
+    parser.add_argument("--temperature", type=float, default=0.45)
     args = parser.parse_args()
 
     model = load_checkpoint(args.checkpoint)
