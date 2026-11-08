@@ -1,0 +1,32 @@
+name: Test real Mars Mini browser chat
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "app.js"
+      - "mars-mini-browser.js"
+      - "models/**"
+      - "tests/browser-smoke.cjs"
+      - ".github/workflows/test-mars-browser.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install browser test runner
+        run: npm install --no-package-lock --no-save playwright@1.56.1
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Test actual ONNX model response in browser
+        run: node tests/browser-smoke.cjs
