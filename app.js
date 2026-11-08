@@ -13,6 +13,67 @@ const attachmentPreview = document.getElementById("attachment-preview");
 const sidebar = document.getElementById("sidebar");
 const menuButton = document.getElementById("menu-button");
 
+/* The Mars scrollbar is a separate on-screen indicator. Its position follows
+   the real scroll offset instead of relying on browser-specific scrollbar CSS. */
+function makeMarsScrollIndicator(scroller, host, options = {}) {
+  const track = document.createElement("div");
+  track.className = "mars-scroll-track";
+  track.setAttribute("aria-hidden", "true");
+
+  const dot = document.createElement("span");
+  dot.className = "mars-scroll-dot";
+  track.appendChild(dot);
+  host.appendChild(track);
+
+  function update() {
+    const rect = scroller.getBoundingClientRect();
+    const hostRect = host.getBoundingClientRect();
+    const maximumScroll = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+    const inset = options.inset ?? 10;
+    const length = Math.max(0, Math.round(rect.height - inset * 2));
+    const visible = length > 20 && rect.width > 0 &&
+      (maximumScroll > 2 || options.alwaysShow === true);
+
+    track.classList.toggle("is-visible", visible);
+    if (!visible) return;
+
+    track.style.top = Math.round(rect.top - hostRect.top + inset) + "px";
+    track.style.right = Math.round(hostRect.right - rect.right + (options.right ?? 10)) + "px";
+    track.style.height = length + "px";
+
+    const range = Math.max(0, length - 12);
+    const fraction = maximumScroll > 0
+      ? Math.min(1, Math.max(0, scroller.scrollTop / maximumScroll))
+      : 0;
+    dot.style.transform = "translateY(" + Math.round(range * fraction) + "px)";
+  }
+
+  scroller.addEventListener("scroll", update, { passive: true });
+  return update;
+}
+
+const refreshChatMarker = makeMarsScrollIndicator(
+  document.querySelector(".chat-area"),
+  document.getElementById("view-chat"),
+  { alwaysShow: true, right: 12 }
+);
+const refreshHistoryMarker = makeMarsScrollIndicator(
+  historyList,
+  sidebar,
+  { right: 8 }
+);
+const refreshComposerMarker = makeMarsScrollIndicator(
+  input,
+  chatForm,
+  { right: 9, inset: 5 }
+);
+
+function refreshScrollIndicators() {
+  refreshChatMarker();
+  refreshHistoryMarker();
+  refreshComposerMarker();
+}
+
 function resizeComposer() {
   // Do not let browsers show a native resize grip or scrollbar.
   // The field grows with text until 180px, then scrolls invisibly.
@@ -24,6 +85,7 @@ function resizeComposer() {
   const contentHeight = input.scrollHeight;
   input.style.height = Math.min(Math.max(contentHeight, minimum), maximum) + "px";
   input.style.overflowY = contentHeight > maximum ? "auto" : "hidden";
+  refreshComposerMarker();
 }
 
 let chats = loadChats();
@@ -72,6 +134,7 @@ function renderHistory() {
     empty.className = "history-empty";
     empty.textContent = "Your conversations will appear here.";
     historyList.appendChild(empty);
+    requestAnimationFrame(refreshHistoryMarker);
     return;
   }
 
@@ -89,6 +152,7 @@ function renderHistory() {
     });
     historyList.appendChild(button);
   }
+  requestAnimationFrame(refreshHistoryMarker);
 }
 
 function makeMessage(role, text) {
@@ -121,7 +185,10 @@ function renderChat() {
     requestAnimationFrame(() => {
       const area = document.querySelector(".chat-area");
       area.scrollTop = area.scrollHeight;
+      refreshChatMarker();
     });
+  } else {
+    requestAnimationFrame(refreshChatMarker);
   }
 }
 
@@ -183,7 +250,10 @@ function submitChat() {
 }
 
 input.addEventListener("input", resizeComposer);
-window.addEventListener("resize", resizeComposer);
+window.addEventListener("resize", () => {
+  resizeComposer();
+  refreshScrollIndicators();
+});
 
 chatForm.addEventListener("submit", event => {
   event.preventDefault();
@@ -241,3 +311,10 @@ document.addEventListener("keydown", event => {
 renderHistory();
 renderChat();
 resizeComposer();
+requestAnimationFrame(refreshScrollIndicators);
+if ("ResizeObserver" in window) {
+  const markerObserver = new ResizeObserver(refreshScrollIndicators);
+  markerObserver.observe(document.querySelector(".chat-area"));
+  markerObserver.observe(historyList);
+  markerObserver.observe(chatForm);
+}
