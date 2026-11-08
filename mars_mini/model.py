@@ -22,8 +22,11 @@ class MarsConfig:
     dropout: float = 0.1
 
     def validate(self) -> None:
-        if self.vocab_size != 256:
-            raise ValueError("Mars-1 Mini currently uses a fixed 256-byte tokenizer")
+        # Legacy Mars-1/Mars-2 still use vocab_size=256. The new BPE model
+        # adds learned merges after the initial 256 byte symbols, without
+        # changing any existing checkpoint or browser model.
+        if not 256 <= self.vocab_size <= 4096:
+            raise ValueError("Mars vocabulary size must be 256..4096")
         if self.embedding_dim <= 0 or self.embedding_dim % self.num_heads != 0:
             raise ValueError("embedding_dim must be positive and divisible by num_heads")
         if self.max_seq_len < 8 or self.num_heads < 1 or self.num_layers < 1:
