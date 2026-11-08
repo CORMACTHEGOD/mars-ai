@@ -2,50 +2,48 @@
 
 **Imagine beyond.** Mars is a work-in-progress AI platform for chat, research, coding, creative tools, plugins, and future 3D generation.
 
-## Website preview (v0.1)
+## Website preview (v0.2)
 
-This repository contains the **public frontend**, built with plain HTML, CSS and JavaScript.
+The public frontend uses plain HTML, CSS and JavaScript, suitable for GitHub Pages.
 
-Included in the first preview:
-- Responsive, dark Mars workspace
-- Chat interface and prompt suggestions
-- Conversation history stored **only in the current browser** using localStorage
-- Preview pages for Explore, Mars Studio, and Plugins
-- Planned tools clearly labeled rather than pretending the AI is already connected
+Included in this preview:
+- A responsive, dark **single-chat** interface
+- No Search, Image, Studio, or Plugins tabs: users will describe what they want naturally
+- Conversation history saved **only in the current browser** using localStorage
+- Prompt suggestions for different future use cases
+- Local image file selection (only the filename is displayed; files are not uploaded)
 
-**Important:** The preview does **not** have a working AI model, live web search, image generation, server accounts, or a backend. Image selection only displays the filename locally; it does not upload or analyze images.
+**Important:** The preview does not have a working AI model, live search, image generation, image understanding, a coding agent, server accounts, or automatic tool routing yet. The preview replies are honest placeholders. The planned architecture for routing requests through AI tools is described in [docs/TOOL_ROUTING.md](docs/TOOL_ROUTING.md).
 
 ## Publish with GitHub Pages
 
-Once the frontend pull request is merged:
+After merging the frontend pull request:
 
-1. Open this repository's **Settings → Pages**.
-2. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
-3. Choose branch **main** and folder **/(root)**, then **Save**.
-4. GitHub will display the published site address once deployment succeeds.
+1. Open **Settings → Pages** in this repository.
+2. Set **Source** to **Deploy from a branch**.
+3. Choose **main** and **/(root)**, then click **Save**.
+4. GitHub will display the published site URL when deployment completes.
 
-Expected site URL after Pages is enabled:
-https://cormacthegod.github.io/mars-ai/
+Expected URL: https://cormacthegod.github.io/mars-ai/
 
-GitHub Pages serves static files only. The production AI will need a separately hosted, secure backend.
+GitHub Pages serves static files. A real AI needs a separately hosted backend.
 
-## File layout
+## Files
 
-- `index.html` — interface and sections
-- `styles.css` — responsive Mars visual design
-- `app.js` — local preview interactions and chat history
+- `index.html` — unified chat interface
+- `styles.css` — responsive dark design
+- `app.js` — browser-local chat preview and history
+- `docs/TOOL_ROUTING.md` — design for automatic AI tool selection
 
-## Roadmap
+## Long-term goals
 
-1. Secure backend + genuine AI chat
-2. Search, citations, image understanding, and image generation
-3. Mars Studio: ToolBloom, ProofLab, and FutureFork
-4. Safe permissions-based plugins and developer API
-5. Mars 3D: generate, edit, texture, and export models
+- Real AI chat, web search with citations, and image understanding/generation
+- Mars Studio: ToolBloom (build), ProofLab (test), and FutureFork (alternatives) behind the same chat
+- Permission-controlled plugins and a developer API
+- Mars 3D for generating, editing and exporting models
 
 ## Security
 
-**Never commit API keys, tokens, passwords, or other secrets here.**
-Use private backend environment variables. The public static website must not directly embed secret provider credentials.
+Never commit API keys, tokens, passwords, or other credentials. Use private server environment variables and keep paid model calls on the backend. Public UI code must not contain secret provider credentials.
 
 This project is an early prototype, not a finished AI service.
