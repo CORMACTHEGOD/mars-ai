@@ -1,7 +1,9 @@
 /* Mars AI public frontend preview: no AI requests or API secrets are used here. */
 "use strict";
 
-const STORAGE_KEY = "mars-ai-preview-chats-v1";
+const EXPERIMENTAL_MARS2 = new URLSearchParams(location.search).get("model") === "mars2";
+const MODEL_NAME = EXPERIMENTAL_MARS2 ? "Mars-2 Research" : "Mars-1 Mini";
+const STORAGE_KEY = EXPERIMENTAL_MARS2 ? "mars-ai-mars2-experiment-chats-v1" : "mars-ai-preview-chats-v1";
 const historyList = document.getElementById("history");
 const emptyState = document.getElementById("empty-state");
 const messagesList = document.getElementById("messages");
@@ -24,22 +26,22 @@ async function detectAiBackend() {
   // Mars-1 Mini is our own model and runs directly on the visitor's device.
   // We only download public ONNX weights and the numerical inference runtime.
   // No inference API, user credentials or Hugging Face access code are needed.
-  aiStatus.lastChild.textContent = " Loading Mars-1 Mini…";
-  sidebarStatus.textContent = "Starting the original Mars-1 Mini model in your browser.";
+  aiStatus.lastChild.textContent = " Loading " + MODEL_NAME + "…";
+  sidebarStatus.textContent = "Starting " + MODEL_NAME + " directly in your browser.";
   try {
-    const browserModel = await import("./mars-mini-browser.js?v=mars-dialogue-v3");
+    const browserModel = await import("./mars-mini-browser.js?v=mars2-lab-1");
     await browserModel.loadMarsMini();
     marsMiniModule = browserModel;
     aiStatus.classList.add("live");
-    aiStatus.lastChild.textContent = " Mars-1 Mini · Local";
-    previewDisclaimer.textContent = "Mars-1 Mini is running in your browser. This early model may produce nonsense.";
-    sidebarStatus.textContent = "Our original tiny model runs on your device. It does not use a paid AI API.";
-    composerNote.textContent = "Mars-1 Mini: 260,736 parameters, trained on a small set of example dialogues. Text stays on your device.";
+    aiStatus.lastChild.textContent = EXPERIMENTAL_MARS2 ? " Mars-2 Lab · Local" : " Mars-1 Mini · Local";
+    previewDisclaimer.textContent = EXPERIMENTAL_MARS2 ? "Mars-2 is an experimental research model, not a reliable general chatbot. Unfamiliar questions often fail." : "Mars-1 Mini is running in your browser. This early model may produce nonsense.";
+    sidebarStatus.textContent = EXPERIMENTAL_MARS2 ? "Mars-2 Lab: an opt-in original-model experiment. No external AI model or paid API is used." : "Our original tiny model runs on your device. It does not use a paid AI API.";
+    composerNote.textContent = EXPERIMENTAL_MARS2 ? "Mars-2 Research: 648,320 parameters. Better at learned examples, still poor at unfamiliar math and facts. Text stays on your device." : "Mars-1 Mini: 260,736 parameters, trained on a small set of example dialogues. Text stays on your device.";
     return true;
   } catch (error) {
-    console.warn("Mars-1 Mini could not start:", error);
+    console.warn(MODEL_NAME + " could not start:", error);
     aiStatus.lastChild.textContent = " Model unavailable";
-    previewDisclaimer.textContent = "Mars-1 Mini has been trained, but its browser model couldn't be loaded here.";
+    previewDisclaimer.textContent = MODEL_NAME + " could not be loaded here.";
     sidebarStatus.textContent = "The browser model is unavailable. Check your connection and refresh the page.";
     composerNote.textContent = "Our model file may still be publishing, or the inference library may not have loaded. Refresh to retry.";
     return false;
@@ -285,7 +287,7 @@ async function submitChat() {
     resizeComposer();
     clearAttachment();
 
-    const thinking = { role: "assistant", text: "Mars-1 Mini is generating locally…", pending: true };
+    const thinking = { role: "assistant", text: MODEL_NAME + " is generating locally…", pending: true };
     chat.messages.push(thinking);
     if (activeChatId === chat.id) renderChat();
     renderHistory();
@@ -294,7 +296,7 @@ async function submitChat() {
       const reply = await marsMiniModule.generateMarsMiniReply(text, {
         maxNewBytes: 90,
         onProgress: (n, max) => {
-          thinking.text = `Mars-1 Mini is generating locally… ${n}/${max} bytes`;
+          thinking.text = `${MODEL_NAME} is generating locally… ${n}/${max} bytes`;
           if (activeChatId === chat.id) {
             const last = messagesList.querySelector(".message:last-child .message-content");
             if (last) last.textContent = thinking.text;
@@ -303,8 +305,8 @@ async function submitChat() {
       });
       thinking.text = reply;
     } catch (error) {
-      console.warn("Mars-1 Mini generation error:", error);
-      thinking.text = "Mars-1 Mini couldn't generate text in this browser. " +
+      console.warn(MODEL_NAME + " generation error:", error);
+      thinking.text = MODEL_NAME + " couldn't generate text in this browser. " +
         (error instanceof Error ? error.message : "Please try again.");
     }
     delete thinking.pending;
