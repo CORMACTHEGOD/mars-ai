@@ -1,0 +1,56 @@
+name: Train original Mars-1 Mini (manual)
+
+# The owner can train from the GitHub website without PowerShell.
+# This workflow does not run on every commit and never needs an API token.
+on:
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: "Training steps (tiny demo; more steps take longer)"
+        required: true
+        default: "150"
+        type: choice
+        options:
+          - "30"
+          - "150"
+          - "400"
+
+permissions:
+  contents: read
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the Mars repository
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CPU-only PyTorch
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Validate the original model and tokenizer
+        run: python -m unittest discover -s tests -v
+
+      - name: Train the original Mars-1 Mini weights
+        run: |
+          python -m mars_mini.train --steps ${{ inputs.steps }} --batch-size 12 --log-every 30
+
+      - name: Generate an experimental sample
+        run: |
+          python -m mars_mini.generate --prompt "hello" --new-tokens 90 > artifacts/mars1-mini/sample.txt
+          cat artifacts/mars1-mini/sample.txt
+
+      - name: Downloadable model and sample
+        uses: actions/upload-artifact@v4
+        with:
+          name: mars-1-mini-trained-weights
+          path: artifacts/mars1-mini/
+          retention-days: 7
