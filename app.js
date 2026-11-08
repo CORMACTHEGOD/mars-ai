@@ -13,6 +13,14 @@ const attachmentPreview = document.getElementById("attachment-preview");
 const sidebar = document.getElementById("sidebar");
 const menuButton = document.getElementById("menu-button");
 
+function resizeComposer() {
+  // Grow with the message, stopping at a comfortable maximum height.
+  // Once it reaches that height it can still scroll, but the scrollbar is hidden.
+  const minimum = window.matchMedia("(max-width: 650px)").matches ? 56 : 60;
+  input.style.height = "auto";
+  input.style.height = Math.min(Math.max(input.scrollHeight, minimum), 180) + "px";
+}
+
 let chats = loadChats();
 let activeChatId = null;
 let selectedImageName = null;
@@ -127,6 +135,7 @@ function clearAttachment() {
 function newChat() {
   activeChatId = null;
   input.value = "";
+  resizeComposer();
   clearAttachment();
   renderChat();
   renderHistory();
@@ -161,11 +170,15 @@ function submitChat() {
 
   persist();
   input.value = "";
+  resizeComposer();
   clearAttachment();
   renderChat();
   renderHistory();
   input.focus();
 }
+
+input.addEventListener("input", resizeComposer);
+window.addEventListener("resize", resizeComposer);
 
 chatForm.addEventListener("submit", event => {
   event.preventDefault();
@@ -189,13 +202,6 @@ document.getElementById("clear-history").addEventListener("click", () => {
   newChat();
   notify("Local conversation history cleared.");
 });
-
-for (const button of document.querySelectorAll("[data-prompt]")) {
-  button.addEventListener("click", () => {
-    input.value = button.dataset.prompt;
-    input.focus();
-  });
-}
 
 document.getElementById("attach-button").addEventListener("click", () => imageInput.click());
 
@@ -229,3 +235,4 @@ document.addEventListener("keydown", event => {
 
 renderHistory();
 renderChat();
+resizeComposer();
