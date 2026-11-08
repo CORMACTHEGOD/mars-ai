@@ -1,0 +1,87 @@
+name: Compare Mars original byte vs BPE tokenizer
+
+# Research-only experiment. No deployment or replacement of Mars-1/Mars-2.
+# Starts on this experiment's initial merge or when manually requested.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mars_mini/tokenizer_bpe.py"
+      - "mars_mini/experiment_tokenizers.py"
+      - ".github/workflows/compare-mars-tokenizers.yml"
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: "Training steps per model (two models; CPU usage applies)"
+        type: choice
+        required: true
+        default: "400"
+        options:
+          - "100"
+          - "400"
+          - "900"
+
+concurrency:
+  group: mars-original-tokenizer-experiment
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out original model repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check BPE data integrity without installing AI libraries
+        run: python -m unittest discover -s data_tests -v
+
+      - name: Fit original tokenizer using train data only
+        run: python -m mars_mini.tokenizer_bpe --merges 192 --output artifacts/mars-tokenizer-v1
+
+      - name: Install CPU-only PyTorch for original neural network research
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Run original model and tokenizer integration tests
+        run: |
+          python -m unittest discover -s tests -p "test_tokenizer_experiment.py" -v
+
+      - name: Run controlled byte-vs-BPE training experiment
+        run: |
+          python -m mars_mini.experiment_tokenizers --steps ${{ inputs.steps || '400' }} --batch-size 12 --merges 192 --eval-every 100
+
+      - name: Review actual metrics
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("artifacts/mars-tokenizer-comparison/comparison.json")
+          results = json.loads(p.read_text())
+          for name, data in results["models"].items():
+              print(name)
+              print("  parameters:", data["parameters"])
+              print("  vocab size:", data["vocab_size"])
+              print("  selected training step:", data["steps_selected"])
+              print("  weighted validation bits/byte:", data["validation_bits_per_byte_weighted"])
+              print("  held-out bits/byte by task:", data["heldout_bits_per_byte_by_task"])
+              print("  generated examples:")
+              for example in data["generated_samples"][:3]:
+                  print("   ", example["prompt"], "->", repr(example["actual"]))
+          PY
+
+      - name: Downloadable original tokenizer and honest model comparison
+        uses: actions/upload-artifact@v4
+        with:
+          name: mars-original-bpe-and-byte-comparison
+          path: |
+            artifacts/mars-tokenizer-v1/
+            artifacts/mars-tokenizer-comparison/
+          retention-days: 14
