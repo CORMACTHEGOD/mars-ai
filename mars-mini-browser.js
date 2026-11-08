@@ -80,7 +80,8 @@ export async function generateMarsMiniReply(prompt, options = {}) {
     if (!Number.isFinite(logits[offset])) {
       throw new Error("Mars returned invalid model values.");
     }
-    const next = chooseNextByte(logits, offset, 0.45, 5);\n    if (next === 10) break;
+    const next = chooseNextByte(logits, offset, 0.45, 5);
+    if (next === 10) break;
     tokens.push(next);
     generated.push(next);
 
