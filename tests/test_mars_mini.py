@@ -8,6 +8,7 @@ import torch
 from mars_mini.corpus import build_corpus
 from mars_mini.generate import complete, load_checkpoint
 from mars_mini.model import MarsConfig, MarsMini, decode, encode
+from mars_mini.train_dialogue import create_splits, example_tensors, make_examples
 
 
 class MarsMiniTests(unittest.TestCase):
@@ -25,6 +26,22 @@ class MarsMiniTests(unittest.TestCase):
         text = build_corpus()
         self.assertIn("Mars-1 Mini", text)
         self.assertGreater(len(encode(text)), 15_000)
+
+    def test_answer_only_training_masks_question_text(self):
+        x, targets = example_tensors("hello", "Hello!", 48)
+        prefix = encode("User: hello\\nMars:")
+        self.assertEqual(tuple(x.shape), (48,))
+        self.assertTrue(torch.all(targets[:len(prefix)-1] == -100))
+        self.assertEqual(targets[len(prefix)-1].item(), ord(" "))
+        self.assertEqual(targets[len(prefix)].item(), ord("H"))
+        self.assertTrue(torch.all(targets[len(encode("User: hello\\nMars: Hello!\\n"))-1:] == -100))
+
+    def test_training_dialogues_have_common_prompts(self):
+        self.assertIn(("hello", "Hello! I am Mars, an experimental AI."), make_examples())
+        training, validation = create_splits(128, 42)
+        self.assertEqual(training[0].shape[1], 128)
+        self.assertGreater(training[0].shape[0], validation[0].shape[0])
+        self.assertTrue(torch.all((training[1] == -100) | ((training[1] >= 0) & (training[1] < 256))))
 
     def test_forward_and_backward(self):
         model = MarsMini(self.cfg)
