@@ -21,14 +21,14 @@ An honest answer: **not much**. The starter dataset is tiny and the network has 
 
 ## Train from the GitHub website (no terminal)
 
-1. Open the repo's [Actions tab](https://github.com/CORMACTHEGOD/mars-ai/actions).
+**The first 150-step training run starts automatically when the original model code is first merged into `main`.** Future edits to `mars_mini/` also trigger training, but ordinary website changes do not. To train another checkpoint manually:\n\n1. Open the repo's [Actions tab](https://github.com/CORMACTHEGOD/mars-ai/actions).
 2. Select **Train original Mars-1 Mini (manual)** on the left.
 3. Click **Run workflow** and choose **150** steps first.
 4. Open the new run to watch its training-loss and validation-loss logs.
 5. After the run succeeds, open **Artifacts** and download `mars-1-mini-trained-weights`.
 6. The ZIP includes `mars1-mini.pt` (the actual trained weights) and `sample.txt` (a genuine generated text sample).
 
-The workflow only starts when **you click Run workflow**, never on every commit. GitHub Actions has account usage limits; check those in GitHub before scheduling long runs.
+The training workflow runs on changes to the original model code or when **you click Run workflow**; it does not run for ordinary website updates. GitHub Actions has account usage limits; check those in GitHub before scheduling long runs.
 
 **Note:** The workflow must be on the repository's default branch for GitHub to offer the manual button. It will appear after we merge the feature branch.
 
