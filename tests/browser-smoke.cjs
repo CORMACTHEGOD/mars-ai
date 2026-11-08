@@ -28,20 +28,31 @@ async function main() {
     browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
     const page = await browser.newPage();
     page.on("console", msg => {
-      if (msg.type() === "error") errors.push(msg.text());
+      if (msg.type() === "error" || msg.type() === "warning") {
+        errors.push(msg.type() + ": " + msg.text());
+      }
     });
-    page.on("pageerror", err => errors.push(err.message));
+    page.on("pageerror", err => errors.push("pageerror: " + err.message));
+    page.on("requestfailed", req => errors.push("requestfailed: " + req.url() + " " +
+      (req.failure()?.errorText || "")));
+    page.on("response", res => {
+      if (res.status() >= 400) errors.push("HTTP " + res.status() + ": " + res.url());
+    });
 
     await page.goto("http://127.0.0.1:9876/", { waitUntil: "load" });
     await page.waitForFunction(
-      () => document.querySelector("#ai-status")?.classList.contains("live"),
+      () => {
+        const el = document.querySelector("#ai-status");
+        return el?.classList.contains("live") || el?.textContent?.includes("Model unavailable");
+      },
       null,
-      { timeout: 120000 }
-    ).catch(async error => {
-      const status = await page.locator("#ai-status").innerText().catch(() => "(missing)");
-      throw new Error("Mars model failed to load. Status: " + status +
-        "\nBrowser errors: " + errors.join("\n") + "\n" + error.message);
-    });
+      { timeout: 90000 }
+    );
+    if (!await page.locator("#ai-status").evaluate(el => el.classList.contains("live"))) {
+      throw new Error("Mars browser model failed to load. Status: " +
+        await page.locator("#ai-status").innerText() +
+        "\nBrowser errors: " + errors.join("\n"));
+    }
     console.log("Mars-1 Mini weights and browser inference runtime loaded successfully");
 
     await page.locator("#prompt").fill("hello");
