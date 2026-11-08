@@ -27,7 +27,7 @@ async function detectAiBackend() {
   aiStatus.lastChild.textContent = " Loading Mars-1 Mini…";
   sidebarStatus.textContent = "Starting the original Mars-1 Mini model in your browser.";
   try {
-    const browserModel = await import("./mars-mini-browser.js?v=mars-local-1");
+    const browserModel = await import("./mars-mini-browser.js?v=mars-local-2");
     await browserModel.loadMarsMini();
     marsMiniModule = browserModel;
     aiStatus.classList.add("live");
