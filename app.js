@@ -12,6 +12,77 @@ const imageInput = document.getElementById("image-input");
 const attachmentPreview = document.getElementById("attachment-preview");
 const sidebar = document.getElementById("sidebar");
 const menuButton = document.getElementById("menu-button");
+const aiStatus = document.getElementById("ai-status");
+const previewDisclaimer = document.getElementById("preview-disclaimer");
+const composerNote = document.getElementById("composer-note");
+const sidebarStatus = document.getElementById("sidebar-status");
+const sendButton = document.querySelector(".send-button");
+const ACCESS_STORAGE_KEY = "mars-ai-beta-access-session";
+let aiEnabled = false;
+let isSending = false;
+
+async function detectAiBackend() {
+  // GitHub Pages is static: no server-side AI endpoint is hosted there.
+  if (location.hostname.endsWith(".github.io")) return false;
+  try {
+    const response = await fetch("/api/chat", { cache: "no-store" });
+    if (!response.ok) return false;
+    const status = await response.json();
+    if (status.service !== "mars-chat") return false;
+
+    if (!status.configured) {
+      aiStatus.lastChild.textContent = " AI setup needed";
+      sidebarStatus.textContent = "The secure AI server is deployed, but the owner has not activated it yet.";
+      composerNote.textContent = "Mars needs a server-side model token and private beta access code to start answering.";
+      return false;
+    }
+    aiEnabled = true;
+    aiStatus.classList.add("live");
+    aiStatus.lastChild.textContent = " AI beta";
+    previewDisclaimer.textContent = "Mars can now answer text questions. Search, images and other tools are still coming.";
+    sidebarStatus.textContent = "Mars Chat beta is available here. Other tools are in development.";
+    composerNote.textContent = "Private beta: your first AI message asks for a tester access code. Messages are sent to an AI provider.";
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function readAccessCode() {
+  try { return sessionStorage.getItem(ACCESS_STORAGE_KEY) || ""; }
+  catch { return ""; }
+}
+function rememberAccessCode(code) {
+  try { sessionStorage.setItem(ACCESS_STORAGE_KEY, code); } catch { /* session storage may be disabled */ }
+}
+function forgetAccessCode() {
+  try { sessionStorage.removeItem(ACCESS_STORAGE_KEY); } catch { /* ignore */ }
+}
+function getAccessCode() {
+  const existing = readAccessCode();
+  if (existing) return existing;
+  // This is a shared beta *access code*, never an AI provider API token.
+  const code = window.prompt("Mars AI private beta: enter your access code (NOT a provider API key):");
+  if (!code || !code.trim()) return null;
+  rememberAccessCode(code.trim());
+  return code.trim();
+}
+
+function buildModelHistory(chat) {
+  // Strip old placeholder replies and any temporary thinking indicator.
+  const messages = chat.messages
+    .filter(entry => !entry.pending && ["user", "assistant"].includes(entry.role))
+    .filter(entry => !(entry.role === "assistant" && entry.text.startsWith("Mars AI preview:")))
+    .slice(-8)
+    .map(entry => ({ role: entry.role, content: entry.text.slice(0, 2500) }));
+  let total = messages.reduce((count, entry) => count + entry.content.length, 0);
+  while (total > 7500 && messages.length > 1) {
+    const oldest = messages.shift();
+    total -= oldest.content.length;
+  }
+  return messages;
+}
+
 
 /* The Mars scrollbar is a separate on-screen indicator. Its position follows
    the real scroll offset instead of relying on browser-specific scrollbar CSS. */
@@ -215,38 +286,92 @@ function newChat() {
   input.focus();
 }
 
-function submitChat() {
+async function submitChat() {
   const text = input.value.trim();
   if (!text) return notify("Write a message first.");
+  if (isSending) return notify("Mars is already answering your message.");
 
-  let chat = findActiveChat();
-  if (!chat) {
-    chat = {
-      id: makeId(),
-      title: text.replace(/\s+/g, " ").slice(0, 36),
-      messages: []
-    };
-    chats.unshift(chat);
-    activeChatId = chat.id;
+  isSending = true;
+  sendButton.disabled = true;
+  try {
+    const online = await aiReadyPromise;
+    let accessCode = null;
+    if (online) {
+      accessCode = getAccessCode();
+      if (!accessCode) return notify("An access code is required for this private AI beta.");
+    }
+
+    let chat = findActiveChat();
+    if (!chat) {
+      chat = {
+        id: makeId(),
+        title: text.replace(/\s+/g, " ").slice(0, 36),
+        messages: []
+      };
+      chats.unshift(chat);
+      activeChatId = chat.id;
+    }
+
+    const attachmentNote = selectedImageName
+      ? "\n\n[Image selected for preview: " + selectedImageName + " — not uploaded or analyzed]"
+      : "";
+    chat.messages.push({ role: "user", text: text + attachmentNote });
+    persist();
+    input.value = "";
+    resizeComposer();
+    clearAttachment();
+
+    if (!online) {
+      chat.messages.push({
+        role: "assistant",
+        text: "Mars AI preview: The secure chat backend is not active at this website yet. To receive real AI replies, open the Netlify deployment after its owner configures the model and private beta access code. GitHub Pages alone cannot run AI."
+      });
+      persist();
+      renderChat();
+      renderHistory();
+      return;
+    }
+
+    const modelMessages = buildModelHistory(chat);
+    const thinking = { role: "assistant", text: "Mars is thinking…", pending: true };
+    chat.messages.push(thinking);
+    if (activeChatId === chat.id) renderChat();
+    renderHistory();
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Mars-Beta-Code": accessCode
+        },
+        body: JSON.stringify({ messages: modelMessages })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (response.status === 401) {
+          forgetAccessCode();
+          throw new Error("The beta code was incorrect. Send another message to enter it again.");
+        }
+        throw new Error(result.error || "Mars could not answer right now.");
+      }
+      if (typeof result.reply !== "string" || !result.reply.trim()) {
+        throw new Error("Mars received an empty AI answer.");
+      }
+      thinking.text = result.reply;
+    } catch (error) {
+      thinking.text = "Mars couldn't finish that message. " +
+        (error instanceof Error ? error.message : "Please try again.");
+    }
+    delete thinking.pending;
+    persist();
+    if (activeChatId === chat.id) renderChat();
+    renderHistory();
+  } finally {
+    isSending = false;
+    sendButton.disabled = false;
+    input.focus();
   }
-
-  const attachmentNote = selectedImageName
-    ? "\n\n[Image selected for preview: " + selectedImageName + " — not uploaded or analyzed]"
-    : "";
-
-  chat.messages.push({ role: "user", text: text + attachmentNote });
-  chat.messages.push({
-    role: "assistant",
-    text: "Mars AI preview: Your message is saved in this browser. An AI model hasn't been connected yet, so I can't perform web searches, generate images, understand uploads, or run code. In the full version, you'll ask naturally and Mars will select the appropriate tools automatically."
-  });
-
-  persist();
-  input.value = "";
-  resizeComposer();
-  clearAttachment();
-  renderChat();
-  renderHistory();
-  input.focus();
 }
 
 input.addEventListener("input", resizeComposer);
@@ -312,6 +437,7 @@ renderHistory();
 renderChat();
 resizeComposer();
 requestAnimationFrame(refreshScrollIndicators);
+const aiReadyPromise = detectAiBackend();
 if ("ResizeObserver" in window) {
   const markerObserver = new ResizeObserver(refreshScrollIndicators);
   markerObserver.observe(document.querySelector(".chat-area"));

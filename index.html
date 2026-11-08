@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#0b0d13">
   <meta name="description" content="Mars AI — one chat to research, create, code, and explore.">
   <title>Mars AI — Imagine beyond</title>
-  <link rel="stylesheet" href="styles.css?v=mars-dot-2">
-  <script src="app.js?v=mars-dot-2" defer></script>
+  <link rel="stylesheet" href="styles.css?v=mars-chat-beta-1">
+  <script src="app.js?v=mars-chat-beta-1" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -21,7 +21,7 @@
       <div id="history" class="chat-history" aria-label="Saved conversations"></div>
       <div class="sidebar-bottom">
         <div class="status-mini"><span class="status-dot"></span><span>Website preview</span><span class="version">v0.2</span></div>
-        <p>One chat for everything. AI tool selection comes when the backend is connected.</p>
+        <p id="sidebar-status">One chat for everything. AI tool selection comes when the backend is connected.</p>
         <a href="https://github.com/CORMACTHEGOD/mars-ai" target="_blank" rel="noopener noreferrer" class="repo-link">View on GitHub <span aria-hidden="true">↗</span></a>
       </div>
     </aside>
@@ -33,7 +33,7 @@
           <span class="topbar-breadcrumb">Mars</span><span class="breadcrumb-slash">/</span><span>Chat</span>
         </div>
         <div class="topbar-right">
-          <span class="preview-pill"><span></span> Preview build</span>
+          <span class="preview-pill" id="ai-status"><span></span> Preview build</span>
           <a class="topbar-github" href="https://github.com/CORMACTHEGOD/mars-ai" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
         </div>
       </header>
@@ -46,7 +46,7 @@
               <div class="eyebrow"><span class="spark">✧</span> YOUR IDEAS, UNLIMITED</div>
               <h1>What will you <em>create</em> today?</h1>
               <p>Ask naturally. Mars will eventually choose the right tools for your request<br class="desktop-only"> — search, images, code, and more — without switching tabs.</p>
-              <p class="preview-disclaimer">Preview only — the AI and tools aren't connected yet.</p>
+              <p class="preview-disclaimer" id="preview-disclaimer">Preview only — the AI and tools aren't connected yet.</p>
             </div>
             <div id="messages" class="messages" aria-live="polite" hidden></div>
           </div>
@@ -55,7 +55,7 @@
             <form id="chat-form" class="composer">
               <div class="attachment-preview" id="attachment-preview" hidden></div>
               <label class="sr-only" for="prompt">Message Mars</label>
-              <textarea id="prompt" style="resize:none;scrollbar-width:none" rows="2" maxlength="5000" placeholder="Ask Mars anything, or describe what to create..." aria-label="Message Mars"></textarea>
+              <textarea id="prompt" style="resize:none;scrollbar-width:none" rows="2" maxlength="2500" placeholder="Ask Mars anything, or describe what to create..." aria-label="Message Mars"></textarea>
               <div class="composer-actions">
                 <div class="composer-tools">
                   <button class="tool-button" id="attach-button" type="button" title="Select an image for a future vision request"><span aria-hidden="true">＋</span> Add image</button>
@@ -65,7 +65,7 @@
                 <button class="send-button" aria-label="Send message" title="Send message" type="submit">↑</button>
               </div>
             </form>
-            <p class="composer-note">This is a frontend preview. Messages are stored in this browser, not sent to an AI server.</p>
+            <p class="composer-note" id="composer-note">This is a frontend preview. Messages are stored in this browser, not sent to an AI server.</p>
           </div>
         </section>
       </main>

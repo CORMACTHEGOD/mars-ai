@@ -1,49 +1,44 @@
 # Mars AI 🪐
 
-**Imagine beyond.** Mars is a work-in-progress AI platform for chat, research, coding, creative tools, plugins, and future 3D generation.
+**Imagine beyond.** Mars is a work-in-progress AI platform for chat, research, coding, plugins, creative tools, and future 3D modeling.
 
-## Website preview (v0.2)
+## What's built
 
-The public frontend uses plain HTML, CSS and JavaScript, suitable for GitHub Pages.
+- A dark, responsive **single-chat** website with the motto **YOUR IDEAS, UNLIMITED**
+- Conversation history saved in the user's browser
+- A custom Mars scrolling indicator and auto-growing message input
+- A **real text-chat backend**, available after the owner configures and deploys it on Netlify
+- A private beta access code, so the AI provider's credits are not exposed to every visitor by default
 
-Included in this preview:
-- A responsive, dark **single-chat** interface
-- No Search, Image, Studio, or Plugins tabs: users will describe what they want naturally
-- Conversation history saved **only in the current browser** using localStorage
-- Prompt suggestions for different future use cases
-- Local image file selection (only the filename is displayed; files are not uploaded)
+**Important:** The [GitHub Pages preview](https://cormacthegod.github.io/mars-ai/) is *static* and still shows a preview message. The real AI chat only works from a Netlify deployment after the model token and beta settings are supplied.
 
-**Important:** The preview does not have a working AI model, live search, image generation, image understanding, a coding agent, server accounts, or automatic tool routing yet. The preview replies are honest placeholders. The planned architecture for routing requests through AI tools is described in [docs/TOOL_ROUTING.md](docs/TOOL_ROUTING.md).
+## Activate real AI chat
 
-## Publish with GitHub Pages
+Follow **[docs/AI_SETUP.md](docs/AI_SETUP.md)** for browser-only GitHub + Netlify + Hugging Face setup, without a terminal.
 
-After merging the frontend pull request:
-
-1. Open **Settings → Pages** in this repository.
-2. Set **Source** to **Deploy from a branch**.
-3. Choose **main** and **/(root)**, then click **Save**.
-4. GitHub will display the published site URL when deployment completes.
-
-Expected URL: https://cormacthegod.github.io/mars-ai/
-
-GitHub Pages serves static files. A real AI needs a separately hosted backend.
+We use an existing external text model for the first release. Mars does **not** yet have its own trained model. Costs, model limits and service requirements apply.
 
 ## Files
 
 - `index.html` — unified chat interface
-- `styles.css` — responsive dark design
-- `app.js` — browser-local chat preview and history
-- `docs/TOOL_ROUTING.md` — design for automatic AI tool selection
+- `styles.css` — responsive dark Mars design
+- `app.js` — chat history, UI behavior and AI requests
+- `netlify.toml` — publishes only frontend files, deploys server functions
+- `netlify/functions/chat.mjs` — secure private text AI API
+- `docs/AI_SETUP.md` — activation guide
+- `docs/TOOL_ROUTING.md` — future automatic tool-routing architecture
 
-## Long-term goals
+## Roadmap
 
-- Real AI chat, web search with citations, and image understanding/generation
-- Mars Studio: ToolBloom (build), ProofLab (test), and FutureFork (alternatives) behind the same chat
-- Permission-controlled plugins and a developer API
-- Mars 3D for generating, editing and exporting models
+1. **Real AI text chat** (backend code available, deployment configuration pending)
+2. User accounts and proper per-user limits before the general public uses it
+3. Web search with citations and image understanding/generation
+4. Mars Studio: ToolBloom (builder), ProofLab (tester), and FutureFork (alternatives)
+5. Permission-controlled GitHub and other plugins
+6. Mars 3D modeling and exports
 
 ## Security
 
-Never commit API keys, tokens, passwords, or other credentials. Use private server environment variables and keep paid model calls on the backend. Public UI code must not contain secret provider credentials.
+Never put AI-provider tokens, passwords, credentials, or private user data in the public repository. Keep credentials in server-side environment variables. The early beta access code is **not** a substitute for proper production authentication or abuse protection.
 
-This project is an early prototype, not a finished AI service.
+Mars is an early-stage project, not a finished AI service.
