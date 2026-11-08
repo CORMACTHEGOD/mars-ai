@@ -14,11 +14,16 @@ const sidebar = document.getElementById("sidebar");
 const menuButton = document.getElementById("menu-button");
 
 function resizeComposer() {
-  // Grow with the message, stopping at a comfortable maximum height.
-  // Once it reaches that height it can still scroll, but the scrollbar is hidden.
+  // Do not let browsers show a native resize grip or scrollbar.
+  // The field grows with text until 180px, then scrolls invisibly.
   const minimum = window.matchMedia("(max-width: 650px)").matches ? 56 : 60;
+  const maximum = 180;
+  input.style.resize = "none";
+  input.style.scrollbarWidth = "none";
   input.style.height = "auto";
-  input.style.height = Math.min(Math.max(input.scrollHeight, minimum), 180) + "px";
+  const contentHeight = input.scrollHeight;
+  input.style.height = Math.min(Math.max(contentHeight, minimum), maximum) + "px";
+  input.style.overflowY = contentHeight > maximum ? "auto" : "hidden";
 }
 
 let chats = loadChats();
