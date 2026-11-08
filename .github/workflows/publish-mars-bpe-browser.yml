@@ -43,6 +43,24 @@ jobs:
         run: |
           python -m mars_mini.train_bpe_browser --steps 400 --output artifacts/mars-bpe-browser --vocabulary-output models/mars-bpe-mini.tokenizer.json
 
+      - name: Verify browser and Python BPE use identical token IDs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from mars_mini.tokenizer_bpe import MarsBPETokenizer
+          tokenizer = MarsBPETokenizer.load("models/mars-bpe-mini.tokenizer.json")
+          examples = [
+              "hello", "User: hello\\nMars:", "User: what is Python?\\nMars:",
+              "Why is Mars red?", "Completely unfamiliar words",
+              "Emoji 🪐🚀", "Café — 東京", "",
+          ]
+          results = [{"text": s, "tokens": tokenizer.encode(s)} for s in examples]
+          path = Path("artifacts/mars-bpe-browser/bpe-parity-fixtures.json")
+          path.write_text(json.dumps(results), encoding="utf-8")
+          PY
+          node tests/check-bpe-parity.mjs models/mars-bpe-mini.tokenizer.json artifacts/mars-bpe-browser/bpe-parity-fixtures.json
+
       - name: Export and verify the matching model weights for browser CPU inference
         run: |
           python -m mars_mini.export_onnx --checkpoint artifacts/mars-bpe-browser/bpe-experiment/weights.pt --output models/mars-bpe-mini.onnx
