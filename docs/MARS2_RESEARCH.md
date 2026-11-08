@@ -33,6 +33,31 @@ The model trains on a push to `main` that changes its own source, or via the man
 
 Don't judge improvements only by training loss or three familiar example questions. Check its unfamiliar test prompts.
 
+## Verified November 8 training results
+
+The [initial run](https://github.com/CORMACTHEGOD/mars-ai/actions/runs/42500389396) trained 648,320 original parameters but selected checkpoint step 600 and produced mostly unreadable conversational answers.
+
+The [balanced-language run](https://github.com/CORMACTHEGOD/mars-ai/actions/runs/42501147217) trained with 716 examples and 202 rephrased validation examples. Its best checkpoint came from step 1,650. Its **language-rephrasing loss reached about 0.468**, but its held-out task loss remained much higher (**about 2.453**). This loss reduction does not prove broad ability.
+
+Real output examples from that run:
+- `hello` → `Hello! I am Mars, an experimental AI.`
+- `what is Python?` → `Python is programmmming language.` (a misspelled answer)
+- `why is Mars red?` → `Iron oxide dust makes Mars look redish.` (nearly correct)
+- Unseen addition questions → frequently wrong numbers
+- Unseen wording for a known concept → sometimes incomprehensible
+
+**Conclusion:** This model learned some familiar conversational patterns better than the first Mars-2 run, but it still fails most unseen tasks. We must not call it a generally smarter AI.
+
+## Try the opt-in browser lab
+
+The normal [Mars AI website](https://cormacthegod.github.io/mars-ai/) remains powered by Mars-1.
+
+For a separate research preview, use:
+
+**https://cormacthegod.github.io/mars-ai/?model=mars2**
+
+The experiment uses `models/mars2-mini.onnx` directly in the browser, without sending prompts to an AI provider. The badge says **Mars-2 Lab**, and the browser stores experimental conversations separately from the regular Mars-1 history. This does not imply that the research model is ready for general use.
+
 ## Site deployment
 
 Mars-1 continues serving the site until we have a verified reason to switch models. Mars-2 is a separate research checkpoint, which is intentional. The existing real browser-inference pipeline can later be adapted to Mars-2.
