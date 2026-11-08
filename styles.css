@@ -64,6 +64,10 @@ button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px sol
 .topbar-breadcrumb, .breadcrumb-slash { color: #697386; font-weight: 400; }
 .breadcrumb-slash { opacity: .5; }
 .preview-pill { display: flex; align-items: center; gap: 10px; color: #c3ad9b; padding: 7px 11px; background: #211d20; border: 1px solid #44302e; border-radius: 30px; font-size: 11px; }
+.preview-pill.live { color: #cdeedb; border-color: #315e4a; background: #172921; }
+.preview-pill.live span { background: #70c990; box-shadow: 0 0 0 3px #70c99020; }
+.send-button:disabled { cursor: progress; opacity: .5; filter: saturate(.6); }
+
 .topbar-github { color: #9da7b7; border: 1px solid #303643; border-radius: 9px; font-size: 12px; padding: 9px 12px; }
 .topbar-github:hover { color: white; border-color: #818b9d; }
 .menu-button { display: none; border: none; background: transparent; color: white; font-size: 20px; }
