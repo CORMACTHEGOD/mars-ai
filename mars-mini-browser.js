@@ -60,7 +60,10 @@ export function loadMarsMini() {
       } else {
         try {
           const text = readable.decode(bpe.tokenBytes(id));
-          if (text && !/[\\u0000-\\u001f\\u007f]/.test(text)) allowedTokens.push(id);
+          if (text && [...text].every(char => {
+            const code = char.codePointAt(0);
+            return code >= 32 && code !== 127;
+          })) allowedTokens.push(id);
         } catch {
           // Incomplete UTF-8 byte fragments are not useful alone in a reply.
         }
@@ -92,7 +95,7 @@ function chooseNextToken(logits, offset, allowedIds, temperature, topK) {
 
 export async function generateMarsMiniReply(prompt, options = {}) {
   const { ort, session, bpe, vocabSize, allowedTokens } = await loadMarsMini();
-  const maxNewBytes = Math.min(120, Math.max(1, options.maxNewBytes ?? 90));
+  const maxNewBytes = Math.min(EXPERIMENTAL_BPE ? 70 : 120, Math.max(1, options.maxNewBytes ?? 90));
   const onProgress = typeof options.onProgress === "function" ? options.onProgress : () => {};
   const originalPrefix = `User: ${String(prompt).trim().slice(0, 220)}\nMars:`;
   const tokens = bpe ? bpe.encode(originalPrefix) : Array.from(new TextEncoder().encode(originalPrefix));
@@ -124,7 +127,8 @@ export async function generateMarsMiniReply(prompt, options = {}) {
     generated.push(next);
 
     const partial = bpe ? bpe.decode(generated) : decoder.decode(Uint8Array.from(generated));
-    if (/\n(?:User|Conversation|A short dialogue|Mars chat example):/i.test(partial)) {
+    if (/\n(?:User|Conversation|A short dialogue|Mars chat example):/i.test(partial) ||
+        (bpe && partial.length >= 8 && /[.!?](?:\s|$)/.test(partial))) {
       break;
     }
     if ((step + 1) % 8 === 0) {
@@ -136,6 +140,7 @@ export async function generateMarsMiniReply(prompt, options = {}) {
 
   const raw = bpe ? bpe.decode(generated) : decoder.decode(Uint8Array.from(generated));
   return raw
+    .split(/\r?\n/)[0]
     .split(/\n(?:User|Conversation|A short dialogue|Mars chat example):/i)[0]
     .trim() || "(Mars generated no readable text this time.)";
 }
