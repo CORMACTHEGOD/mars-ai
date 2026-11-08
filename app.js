@@ -1,4 +1,4 @@
-/* Mars AI frontend preview. No server calls or third-party AI APIs are made here. */
+/* Mars AI public frontend preview: no AI requests or API secrets are used here. */
 "use strict";
 
 const STORAGE_KEY = "mars-ai-preview-chats-v1";
@@ -10,6 +10,8 @@ const chatForm = document.getElementById("chat-form");
 const toast = document.getElementById("toast");
 const imageInput = document.getElementById("image-input");
 const attachmentPreview = document.getElementById("attachment-preview");
+const sidebar = document.getElementById("sidebar");
+const menuButton = document.getElementById("menu-button");
 
 let chats = loadChats();
 let activeChatId = null;
@@ -59,6 +61,7 @@ function renderHistory() {
     historyList.appendChild(empty);
     return;
   }
+
   for (const chat of chats) {
     const button = document.createElement("button");
     button.type = "button";
@@ -67,9 +70,9 @@ function renderHistory() {
     button.title = button.textContent;
     button.addEventListener("click", () => {
       activeChatId = chat.id;
-      showView("chat");
       renderChat();
       renderHistory();
+      closeSidebar();
     });
     historyList.appendChild(button);
   }
@@ -87,7 +90,6 @@ function makeMessage(role, text) {
   const body = document.createElement("div");
   body.className = "message-content";
   body.textContent = text;
-
   message.append(avatar, body);
   return message;
 }
@@ -110,25 +112,31 @@ function renderChat() {
   }
 }
 
-function newChat() {
-  activeChatId = null;
-  input.value = "";
+function closeSidebar() {
+  sidebar.classList.remove("open");
+  menuButton.setAttribute("aria-expanded", "false");
+}
+
+function clearAttachment() {
   selectedImageName = null;
   imageInput.value = "";
   attachmentPreview.hidden = true;
   attachmentPreview.textContent = "";
-  showView("chat");
+}
+
+function newChat() {
+  activeChatId = null;
+  input.value = "";
+  clearAttachment();
   renderChat();
   renderHistory();
+  closeSidebar();
   input.focus();
 }
 
 function submitChat() {
   const text = input.value.trim();
-  if (!text) {
-    notify("Write a message first. AI chat will be connected in a later build.");
-    return;
-  }
+  if (!text) return notify("Write a message first.");
 
   let chat = findActiveChat();
   if (!chat) {
@@ -142,42 +150,21 @@ function submitChat() {
   }
 
   const attachmentNote = selectedImageName
-    ? "\n\n[Selected locally: " + selectedImageName + " — image processing not connected]"
+    ? "\n\n[Image selected for preview: " + selectedImageName + " — not uploaded or analyzed]"
     : "";
+
   chat.messages.push({ role: "user", text: text + attachmentNote });
   chat.messages.push({
     role: "assistant",
-    text: "Mars AI preview: Your message has been saved in this browser. The real AI model and secure backend aren't connected yet, so I can't answer or process images in this preview."
+    text: "Mars AI preview: Your message is saved in this browser. An AI model hasn't been connected yet, so I can't perform web searches, generate images, understand uploads, or run code. In the full version, you'll ask naturally and Mars will select the appropriate tools automatically."
   });
+
   persist();
   input.value = "";
-  selectedImageName = null;
-  imageInput.value = "";
-  attachmentPreview.hidden = true;
-  attachmentPreview.textContent = "";
+  clearAttachment();
   renderChat();
   renderHistory();
   input.focus();
-}
-
-function showView(view) {
-  const valid = ["chat", "explore", "studio", "plugins"];
-  if (!valid.includes(view)) view = "chat";
-  for (const section of document.querySelectorAll(".view")) {
-    const isActive = section.id === "view-" + view;
-    section.classList.toggle("active", isActive);
-    section.hidden = !isActive;
-  }
-  for (const button of document.querySelectorAll("[data-view]")) {
-    button.classList.toggle("active", button.dataset.view === view);
-    if (button.dataset.view === view) button.setAttribute("aria-current", "page");
-    else button.removeAttribute("aria-current");
-  }
-  document.getElementById("page-title").textContent = ({
-    chat: "Chat", explore: "Explore", studio: "Mars Studio", plugins: "Plugins"
-  })[view];
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("menu-button").setAttribute("aria-expanded", "false");
 }
 
 chatForm.addEventListener("submit", event => {
@@ -203,10 +190,6 @@ document.getElementById("clear-history").addEventListener("click", () => {
   notify("Local conversation history cleared.");
 });
 
-for (const button of document.querySelectorAll("[data-view]")) {
-  button.addEventListener("click", () => showView(button.dataset.view));
-}
-
 for (const button of document.querySelectorAll("[data-prompt]")) {
   button.addEventListener("click", () => {
     input.value = button.dataset.prompt;
@@ -214,28 +197,23 @@ for (const button of document.querySelectorAll("[data-prompt]")) {
   });
 }
 
-for (const button of document.querySelectorAll("[data-soon]")) {
-  button.addEventListener("click", () => notify(button.dataset.soon));
-}
-
 document.getElementById("attach-button").addEventListener("click", () => imageInput.click());
+
 imageInput.addEventListener("change", () => {
   const file = imageInput.files && imageInput.files[0];
   if (!file) return;
   if (!file.type.startsWith("image/")) {
-    imageInput.value = "";
-    notify("Please select an image file.");
-    return;
+    clearAttachment();
+    return notify("Please select an image file.");
   }
   selectedImageName = file.name.slice(0, 100);
-  attachmentPreview.textContent = "Image selected: " + selectedImageName + " (local preview only; not uploaded)";
+  attachmentPreview.textContent = "Image selected: " + selectedImageName + " (preview only; not uploaded)";
   attachmentPreview.hidden = false;
 });
 
-document.getElementById("menu-button").addEventListener("click", () => {
-  const sidebar = document.getElementById("sidebar");
+menuButton.addEventListener("click", () => {
   const open = sidebar.classList.toggle("open");
-  document.getElementById("menu-button").setAttribute("aria-expanded", String(open));
+  menuButton.setAttribute("aria-expanded", String(open));
 });
 
 document.addEventListener("keydown", event => {
@@ -246,12 +224,8 @@ document.addEventListener("keydown", event => {
     event.preventDefault();
     newChat();
   }
-  if (event.key === "Escape") {
-    document.getElementById("sidebar").classList.remove("open");
-    document.getElementById("menu-button").setAttribute("aria-expanded", "false");
-  }
+  if (event.key === "Escape") closeSidebar();
 });
 
 renderHistory();
 renderChat();
-showView("chat");
