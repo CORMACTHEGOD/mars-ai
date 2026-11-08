@@ -1,0 +1,71 @@
+name: Publish original Mars BPE browser experiment
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mars_mini/train_bpe_browser.py"
+      - ".github/workflows/publish-mars-bpe-browser.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: mars-original-bpe-browser-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  train-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check the original Mars tokenizer
+        run: python -m unittest discover -s data_tests -v
+
+      - name: Install PyTorch and ONNX for original model training
+        run: |
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install onnx onnxruntime numpy
+
+      - name: Validate the original model and tokenizer together
+        run: python -m unittest discover -s tests -p "test_tokenizer_experiment.py" -v
+
+      - name: Train our original Mars BPE model and serialize the exact vocabulary
+        run: |
+          python -m mars_mini.train_bpe_browser --steps 400 --output artifacts/mars-bpe-browser --vocabulary-output models/mars-bpe-mini.tokenizer.json
+
+      - name: Export and verify the matching model weights for browser CPU inference
+        run: |
+          python -m mars_mini.export_onnx --checkpoint artifacts/mars-bpe-browser/bpe-experiment/weights.pt --output models/mars-bpe-mini.onnx
+
+      - name: Save research weights, vocabulary and generated samples as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mars-original-bpe-browser-experiment
+          path: |
+            artifacts/mars-bpe-browser/
+            models/mars-bpe-mini.onnx
+            models/mars-bpe-mini.tokenizer.json
+          retention-days: 14
+
+      - name: Publish model and tokenizer together for optional GitHub Pages chat
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add models/mars-bpe-mini.onnx models/mars-bpe-mini.tokenizer.json
+          if git diff --cached --quiet; then
+            echo "Original BPE model and vocabulary already published."
+          else
+            git commit -m "build: publish paired Mars BPE browser weights and vocabulary [skip ci]"
+            git push origin HEAD:main
+          fi
