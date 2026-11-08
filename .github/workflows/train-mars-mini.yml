@@ -12,12 +12,13 @@ on:
       steps:
         description: "Training steps (tiny demo; more steps take longer)"
         required: true
-        default: "150"
+        default: "2500"
         type: choice
         options:
-          - "30"
-          - "150"
-          - "400"
+          - "500"
+          - "1500"
+          - "2500"
+          - "4000"
 
 permissions:
   # Required only for publishing the generated ONNX weights to the public
@@ -50,11 +51,13 @@ jobs:
 
       - name: Train the original Mars-1 Mini weights
         run: |
-          python -m mars_mini.train --steps ${{ inputs.steps || '150' }} --batch-size 12 --log-every 30
+          python -m mars_mini.train_dialogue --steps ${{ inputs.steps || '2500' }} --batch-size 16 --log-every 250
 
       - name: Generate an experimental sample
         run: |
           python -m mars_mini.generate --prompt "hello" --new-tokens 90 > artifacts/mars1-mini/sample.txt
+          python -m mars_mini.generate --prompt "who are you?" --new-tokens 90 >> artifacts/mars1-mini/sample.txt
+          python -m mars_mini.generate --prompt "what is Python?" --new-tokens 90 >> artifacts/mars1-mini/sample.txt
           cat artifacts/mars1-mini/sample.txt
 
       - name: Export and verify ONNX weights for the Mars website

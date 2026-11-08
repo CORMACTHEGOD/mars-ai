@@ -37,5 +37,7 @@ jobs:
         run: |
           python -m mars_mini.train --steps 2 --block-size 24 --width 32 --heads 4 --layers 1 --batch-size 2 --log-every 1 --output artifacts/smoke
           python -m mars_mini.generate --checkpoint artifacts/smoke/mars1-mini.pt --prompt hello --new-tokens 12
+          python -m mars_mini.train_dialogue --steps 2 --batch-size 2 --log-every 1 --output artifacts/dialogue-smoke
+          python -m mars_mini.generate --checkpoint artifacts/dialogue-smoke/mars1-mini.pt --prompt hello --new-tokens 12
       - name: Export smoke model to browser ONNX and validate logits at multiple lengths
         run: python -m mars_mini.export_onnx --checkpoint artifacts/smoke/mars1-mini.pt --output artifacts/smoke/browser-model.onnx
