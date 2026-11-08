@@ -1,6 +1,6 @@
 # Mars-1 Mini — our first ORIGINAL language model
 
-**Status:** Original code is written. The training workflow is available but the initial model weights have not been trained or deployed yet.
+**Status:** Our first training run **completed successfully on November 8, 2026**. The [verified run](https://github.com/CORMACTHEGOD/mars-ai/actions/runs/42490292435) trained **257,664 parameters** from random weights on **36,852 UTF-8 bytes** of our original examples in **150 steps**. Training loss improved from **5.580 to 2.117** and held-out validation loss from **5.271 to 1.770**. The model checkpoint and a genuine (still largely incoherent) text sample were uploaded as an Actions artifact with 7-day retention. No model weights are deployed online yet.
 
 This is **Option A: from scratch**. We designed a small decoder-only Transformer with a byte tokenizer and started with random parameters. It does not call ChatGPT, Claude, Hugging Face, or any pretrained model.
 
