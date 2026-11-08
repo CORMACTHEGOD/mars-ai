@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d13">
+  <meta name="description" content="Mars AI — one space to think, create, code and explore.">
+  <title>Mars AI — Imagine beyond</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+      <a href="./" class="brand" aria-label="Mars AI home">
+        <span class="brand-mark" aria-hidden="true"><span class="planet"></span><span class="orbit"></span></span>
+        <span class="brand-copy"><strong>MARS</strong><small>AI WORKSPACE</small></span>
+      </a>
+
+      <button class="new-chat" id="new-chat" type="button"><span aria-hidden="true">＋</span> New conversation <span class="shortcut">N</span></button>
+
+      <div class="sidebar-section-label">WORKSPACE</div>
+      <nav class="primary-nav" aria-label="Mars sections">
+        <button class="nav-link active" data-view="chat" type="button"><span class="nav-icon" aria-hidden="true">◈</span> Chat <span class="nav-indicator"></span></button>
+        <button class="nav-link" data-view="explore" type="button"><span class="nav-icon" aria-hidden="true">✧</span> Explore</button>
+        <button class="nav-link" data-view="studio" type="button"><span class="nav-icon" aria-hidden="true">⌘</span> Mars Studio <span class="nav-soon">Soon</span></button>
+        <button class="nav-link" data-view="plugins" type="button"><span class="nav-icon" aria-hidden="true">▦</span> Plugins <span class="nav-soon">Soon</span></button>
+      </nav>
+
+      <div class="history-heading"><span>RECENT CHATS</span><button id="clear-history" class="icon-button" type="button" title="Clear saved conversations" aria-label="Clear saved conversations">×</button></div>
+      <div id="history" class="chat-history" aria-label="Saved conversations"></div>
+
+      <div class="sidebar-bottom">
+        <div class="status-mini"><span class="status-dot"></span><span>Website preview</span><span class="version">v0.1</span></div>
+        <p>Chat history stays in this browser. AI is not connected yet.</p>
+        <a href="https://github.com/CORMACTHEGOD/mars-ai" target="_blank" rel="noopener noreferrer" class="repo-link">View on GitHub <span aria-hidden="true">↗</span></a>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" id="menu-button" class="menu-button" aria-label="Open navigation" aria-expanded="false">☰</button>
+          <span class="topbar-breadcrumb">Workspace</span><span class="breadcrumb-slash">/</span><span id="page-title">Chat</span>
+        </div>
+        <div class="topbar-right">
+          <span class="preview-pill"><span></span> Preview build</span>
+          <a class="topbar-github" href="https://github.com/CORMACTHEGOD/mars-ai" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="view active" id="view-chat" aria-label="Mars Chat">
+          <div class="chat-area">
+            <div id="empty-state" class="empty-state">
+              <div class="hero-art" aria-hidden="true"><div class="hero-halo"></div><div class="hero-planet"></div><div class="hero-orbit"></div><div class="hero-star one"></div><div class="hero-star two"></div></div>
+              <div class="eyebrow"><span class="spark">✧</span> YOUR IDEAS, UNLIMITED</div>
+              <h1>What will you <em>create</em> today?</h1>
+              <p>From a passing thought to your next big project.<br>One workspace to imagine, build, and explore.</p>
+              <div class="suggestions" aria-label="Try a prompt">
+                <button class="suggestion" type="button" data-prompt="Help me plan a Roblox game with unique mechanics"><span>⌘</span> Plan a game</button>
+                <button class="suggestion" type="button" data-prompt="Brainstorm an original app that solves a real problem"><span>✧</span> Brainstorm an idea</button>
+                <button class="suggestion" type="button" data-prompt="Help me build a beautiful website from scratch"><span>◈</span> Build a website</button>
+                <button class="suggestion" type="button" data-prompt="Explain how image generation AI works"><span>◇</span> Learn something</button>
+              </div>
+            </div>
+            <div id="messages" class="messages" aria-live="polite" hidden></div>
+          </div>
+
+          <div class="composer-area">
+            <form id="chat-form" class="composer">
+              <div class="attachment-preview" id="attachment-preview" hidden></div>
+              <label class="sr-only" for="prompt">Message Mars</label>
+              <textarea id="prompt" rows="2" maxlength="5000" placeholder="Message Mars..." aria-label="Message Mars"></textarea>
+              <div class="composer-actions">
+                <div class="composer-tools">
+                  <button class="tool-button" id="attach-button" type="button" title="Attach an image for the preview"><span aria-hidden="true">＋</span> Add image</button>
+                  <button class="tool-button" data-soon="Web search will work after we connect a search backend." type="button"><span aria-hidden="true">◎</span> Search</button>
+                  <button class="tool-button" data-soon="Image generation is planned for Mars Vision." type="button"><span aria-hidden="true">✧</span> Create</button>
+                  <input id="image-input" type="file" accept="image/*" hidden>
+                </div>
+                <button class="send-button" aria-label="Send message" title="Send message" type="submit">↑</button>
+              </div>
+            </form>
+            <p class="composer-note">Mars is a frontend preview. Messages are saved locally; AI replies require a secure backend.</p>
+          </div>
+        </section>
+
+        <section class="view section-view" id="view-explore" aria-label="Explore Mars" hidden>
+          <div class="section-intro"><span class="section-kicker">DISCOVER MARS</span><h1>Explore what comes next.</h1><p>A connected universe of AI capabilities. This page is a roadmap preview, not live generation.</p></div>
+          <div class="feature-grid">
+            <article class="feature-card"><span class="feature-icon">◎</span><span class="feature-state">Planned</span><h2>Mars Search</h2><p>Web research with links to original sources.</p></article>
+            <article class="feature-card"><span class="feature-icon">▧</span><span class="feature-state">Planned</span><h2>Mars Vision</h2><p>Understand images and generate new ones.</p></article>
+            <article class="feature-card"><span class="feature-icon">⌘</span><span class="feature-state">Planned</span><h2>Mars Code</h2><p>Write scripts, build apps and fix bugs.</p></article>
+            <article class="feature-card"><span class="feature-icon">⬡</span><span class="feature-state">Future</span><h2>Mars 3D</h2><p>Make, edit and export 3D models.</p></article>
+          </div>
+        </section>
+
+        <section class="view section-view" id="view-studio" aria-label="Mars Studio" hidden>
+          <div class="section-intro"><span class="section-kicker">CREATE WITH MARS</span><h1>Meet Mars Studio.</h1><p>One future coding agent, three connected capabilities. Studio needs a backend before it can run projects.</p></div>
+          <div class="studio-banner"><span>✧</span><div><strong>From idea to tested project</strong><p>Build it. Verify it. Compare possibilities.</p></div><span class="coming-label">IN DEVELOPMENT</span></div>
+          <div class="feature-grid">
+            <article class="feature-card"><span class="feature-icon">↗</span><h2>ToolBloom</h2><p>Turn a request into actual project files and reusable tools.</p></article>
+            <article class="feature-card"><span class="feature-icon">✓</span><h2>ProofLab</h2><p>Run tests and show what works instead of claiming success without proof.</p></article>
+            <article class="feature-card"><span class="feature-icon">⑂</span><h2>FutureFork</h2><p>Generate and compare different versions before choosing one.</p></article>
+          </div>
+        </section>
+
+        <section class="view section-view" id="view-plugins" aria-label="Mars Plugins" hidden>
+          <div class="section-intro"><span class="section-kicker">EXPAND THE POSSIBLE</span><h1>A world of plugins.</h1><p>Future connections will require clear permissions and user approval. None are connected in this preview.</p></div>
+          <div class="feature-grid">
+            <article class="feature-card"><span class="feature-icon">⌘</span><h2>Developer tools</h2><p>Repositories, code reviews and project workflows.</p></article>
+            <article class="feature-card"><span class="feature-icon">▣</span><h2>Files and projects</h2><p>Work with documents, assets and workspace files.</p></article>
+            <article class="feature-card"><span class="feature-icon">⬡</span><h2>Creator tools</h2><p>3D printing, game development and design apps.</p></article>
+            <article class="feature-card"><span class="feature-icon">＋</span><h2>Mars Plugin SDK</h2><p>Eventually let developers create permission-controlled plugins.</p></article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
