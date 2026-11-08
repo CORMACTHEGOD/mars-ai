@@ -282,3 +282,41 @@ h1, h2, p { margin-top: 0; }
 }
 /* A visible but quiet scrolling cue on the main conversation; history and
    the input show it only when their content exceeds their available height. */
+
+
+/* Quiet, accessible model selector. These are separate research experiments,
+   not a claim that the newest model is the best. */
+.model-picker {
+  border-top: 1px solid var(--line);
+  padding: 12px 0 14px;
+}
+.model-picker-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--muted-2);
+  margin-bottom: 10px;
+}
+.model-picker-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.model-picker-links a {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: var(--muted);
+  font-size: 11px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.model-picker-links a[aria-current="page"] {
+  color: var(--accent-2);
+  background: rgba(244, 119, 83, 0.08);
+  border-color: rgba(244, 119, 83, 0.55);
+}
+.model-picker-links a:hover {
+  color: var(--text);
+  border-color: var(--muted-2);
+}
