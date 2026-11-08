@@ -6,7 +6,7 @@
  *
  * The model is a tiny research demo and is NOT a capable or reliable chatbot.
  */
-const MODEL_URL = new URL("./models/mars1-mini.onnx?v=dialogue-v2", import.meta.url).href;
+const MODEL_URL = new URL("./models/mars1-mini.onnx?v=dialogue-v2-weights-1", import.meta.url).href;
 const ORT_VERSION = "1.30.0";
 const ORT_BASE = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`;
 const ORT_MODULE = ORT_BASE + "ort.min.mjs";
