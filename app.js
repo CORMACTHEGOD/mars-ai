@@ -36,7 +36,7 @@ async function detectAiBackend() {
   aiStatus.lastChild.textContent = " Loading " + MODEL_NAME + "…";
   sidebarStatus.textContent = "Starting " + MODEL_NAME + " directly in your browser.";
   try {
-    const browserModel = await import("./mars-mini-browser.js?v=mars-bpe-chat-1");
+    const browserModel = await import("./mars-mini-browser.js?v=mars-bpe-chat-2");
     await browserModel.loadMarsMini();
     marsMiniModule = browserModel;
     aiStatus.classList.add("live");
