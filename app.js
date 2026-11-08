@@ -324,7 +324,7 @@ async function submitChat() {
     if (!online) {
       chat.messages.push({
         role: "assistant",
-        text: "Mars AI preview: The secure chat backend is not active at this website yet. To receive real AI replies, open the Netlify deployment after its owner configures the model and private beta access code. GitHub Pages alone cannot run AI."
+        text: "Mars AI status: Mars-1 Mini was trained successfully on GitHub, but its model weights are not hosted or connected to this website yet. GitHub Pages only serves the interface, so it cannot run our Python model. We're working toward hosting Mars-1 Mini behind a secure API; its first text generation is still experimental."
       });
       persist();
       renderChat();
