@@ -59,6 +59,16 @@ def run(args: argparse.Namespace) -> Path:
     splits = make_mars2_splits(args.seed)
     training = tensorize(splits.train, cfg.max_seq_len)
     validation = tensorize(splits.validation, cfg.max_seq_len)
+    # Score language and arithmetic separately: short numeric answers must
+    # not mask poor conversational performance in a single average.
+    language_val = tensorize(
+        [example for example in splits.validation
+         if not example[1].rstrip(".").isdigit()], cfg.max_seq_len
+    )
+    arithmetic_val = tensorize(
+        [example for example in splits.validation
+         if example[1].rstrip(".").isdigit()], cfg.max_seq_len
+    )
     novel = tensorize(splits.novel_test, cfg.max_seq_len)
 
     model = MarsMini(cfg)
@@ -70,14 +80,23 @@ def run(args: argparse.Namespace) -> Path:
     print(format_summary(splits), flush=True)
     print("Validation tests new *wording* of familiar facts; held-out test checks unseen tasks.", flush=True)
 
+    # The first attempt oversampled short sums, and saved a checkpoint before
+    # it had even learned 'hello'. Weight long language answers more heavily.
+    example_weights = torch.tensor(
+        [3.5 if not answer.rstrip(".").isdigit() else 1.0
+         for _, answer in splits.train], dtype=torch.float
+    )
+    minimum_steps = min(args.steps, max(2, int(args.steps * 0.55)))
     best_val = math.inf
+    best_val_language = math.inf
+    best_val_arithmetic = math.inf
     best_step = 0
     best_state = None
     stale_checks = 0
     samples = []
     model.train()
     for step in range(1, args.steps + 1):
-        idx = torch.randint(0, training[0].shape[0], (args.batch_size,))
+        idx = torch.multinomial(example_weights, args.batch_size, replacement=True)
         x, y = training[0][idx], training[1][idx]
         _, loss = model(x, y)
         optimizer.zero_grad(set_to_none=True)
@@ -86,20 +105,32 @@ def run(args: argparse.Namespace) -> Path:
         optimizer.step()
 
         if step == 1 or step % args.eval_every == 0 or step == args.steps:
-            val_loss = measure(model, validation)
+            language_loss = measure(model, language_val)
+            arithmetic_loss = measure(model, arithmetic_val)
+            val_loss = 0.7 * language_loss + 0.3 * arithmetic_loss
             train_loss = float(loss)
-            samples.append({"step": step, "train_loss": train_loss, "paraphrase_val_loss": val_loss})
-            if val_loss < best_val - 0.005:
-                best_val = val_loss
-                best_step = step
-                best_state = copy.deepcopy(model.state_dict())
-                stale_checks = 0
-            else:
-                stale_checks += 1
+            samples.append({
+                "step": step, "train_loss": train_loss,
+                "paraphrase_val_loss": val_loss,
+                "language_paraphrase_loss": language_loss,
+                "arithmetic_paraphrase_loss": arithmetic_loss,
+            })
+            if step >= minimum_steps:
+                if val_loss < best_val - 0.005:
+                    best_val = val_loss
+                    best_val_language = language_loss
+                    best_val_arithmetic = arithmetic_loss
+                    best_step = step
+                    best_state = copy.deepcopy(model.state_dict())
+                    stale_checks = 0
+                else:
+                    stale_checks += 1
             print(f"step {step:5} | train loss {train_loss:.3f} | "
-                  f"unseen-phrasing loss {val_loss:.3f} | best step {best_step}", flush=True)
-            if stale_checks >= args.patience:
-                print("Early stopping: no better validation results; avoid further memorization.", flush=True)
+                  f"new-language-phrasing loss {language_loss:.3f} | "
+                  f"new-math-phrasing loss {arithmetic_loss:.3f} | "
+                  f"balanced loss {val_loss:.3f} | best step {best_step}", flush=True)
+            if step >= minimum_steps and stale_checks >= args.patience:
+                print("Early stopping after the language-learning phase.", flush=True)
                 break
 
     if best_state is None:
@@ -116,6 +147,8 @@ def run(args: argparse.Namespace) -> Path:
         "model_name": "Mars-2 Research",
         "best_step": best_step,
         "best_paraphrase_val_loss": best_val,
+        "best_language_paraphrase_loss": best_val_language,
+        "best_arithmetic_paraphrase_loss": best_val_arithmetic,
         "heldout_task_loss": test_loss,
         "training_examples": len(splits.train),
         "validation_examples": len(splits.validation),
@@ -131,8 +164,10 @@ def run(args: argparse.Namespace) -> Path:
         "chosen_step": best_step,
         "requested_steps": args.steps,
         "best_paraphrase_val_loss": best_val,
+        "best_language_paraphrase_loss": best_val_language,
+        "best_arithmetic_paraphrase_loss": best_val_arithmetic,
         "heldout_task_loss": test_loss,
-        "note": "Low rephrase loss is NOT proof of knowledge of new facts.",
+        "note": "Balanced wording metrics; still not proof of novel fact knowledge.",
         "history": samples,
     }
     (outdir / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
@@ -144,11 +179,11 @@ def run(args: argparse.Namespace) -> Path:
 
 def main():
     parser = argparse.ArgumentParser(description="Train and evaluate original Mars-2 mini")
-    parser.add_argument("--steps", type=int, default=1500)
+    parser.add_argument("--steps", type=int, default=1800)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--learning-rate", type=float, default=0.00055)
     parser.add_argument("--eval-every", type=int, default=150)
-    parser.add_argument("--patience", type=int, default=4)
+    parser.add_argument("--patience", type=int, default=5)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--output", default="artifacts/mars2-mini")
     run(parser.parse_args())
