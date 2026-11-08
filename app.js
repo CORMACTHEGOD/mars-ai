@@ -22,6 +22,10 @@ const previewDisclaimer = document.getElementById("preview-disclaimer");
 const composerNote = document.getElementById("composer-note");
 const sidebarStatus = document.getElementById("sidebar-status");
 const sendButton = document.querySelector(".send-button");
+document.querySelectorAll("[data-model-link]").forEach(link => {
+  const mode = EXPERIMENTAL_BPE ? "bpe" : EXPERIMENTAL_MARS2 ? "mars2" : "mars1";
+  if (link.dataset.modelLink === mode) link.setAttribute("aria-current", "page");
+});
 let isSending = false;
 let marsMiniModule = null;
 
