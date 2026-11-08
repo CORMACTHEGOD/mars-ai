@@ -13,12 +13,12 @@ on:
       steps:
         description: "Maximum training steps (early stopping may stop sooner)"
         type: choice
-        default: "1500"
+        default: "1800"
         required: true
         options:
           - "300"
           - "900"
-          - "1500"
+          - "1800"
           - "2400"
 
 concurrency:
@@ -48,7 +48,7 @@ jobs:
 
       - name: Train original Mars-2 with early stopping
         run: |
-          python -m mars_mini.train_mars2 --steps ${{ inputs.steps || '1500' }} --batch-size 16 --eval-every 150 --patience 4
+          python -m mars_mini.train_mars2 --steps ${{ inputs.steps || '1800' }} --batch-size 16 --eval-every 150 --patience 5
 
       - name: Evaluate familiar, paraphrased and truly held-out questions
         run: |
