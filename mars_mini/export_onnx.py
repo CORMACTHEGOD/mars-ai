@@ -66,7 +66,9 @@ def export_model(checkpoint: str, target: str) -> Path:
     assert session.get_inputs()[0].name == "tokens"
     assert session.get_outputs()[0].name == "logits"
     # Validate both short and full-context inputs, not only the export sample.
-    for length in (1, 8, 32, 96):
+    lengths = sorted({1, min(8, model.cfg.max_seq_len),
+                      min(32, model.cfg.max_seq_len), model.cfg.max_seq_len})
+    for length in lengths:
         tokens = torch.randint(0, 256, (1, length), dtype=torch.long)
         with torch.inference_mode():
             expected, _ = model(tokens)
