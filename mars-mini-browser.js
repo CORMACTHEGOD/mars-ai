@@ -6,11 +6,18 @@
  *
  * The model is a tiny research demo and is NOT a capable or reliable chatbot.
  */
-const MODEL_URL = new URL("./models/mars1-mini.onnx?v=dialogue-v2-weights-1", import.meta.url).href;
+// Deliberate opt-in URL, not a model switcher in the main chat interface.
+const EXPERIMENTAL_MARS2 = new URLSearchParams(window.location.search).get("model") === "mars2";
+const MODEL_URL = new URL(
+  EXPERIMENTAL_MARS2
+    ? "./models/mars2-mini.onnx?v=balanced-research-1"
+    : "./models/mars1-mini.onnx?v=dialogue-v2-weights-1",
+  import.meta.url
+).href;
 const ORT_VERSION = "1.30.0";
 const ORT_BASE = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`;
 const ORT_MODULE = ORT_BASE + "ort.min.mjs";
-const CONTEXT_SIZE = 128;
+const CONTEXT_SIZE = EXPERIMENTAL_MARS2 ? 160 : 128;
 const VOCAB_SIZE = 256;
 let loadPromise = null;
 
@@ -80,7 +87,7 @@ export async function generateMarsMiniReply(prompt, options = {}) {
     if (!Number.isFinite(logits[offset])) {
       throw new Error("Mars returned invalid model values.");
     }
-    const next = chooseNextByte(logits, offset, 0.45, 5);
+    const next = chooseNextByte(logits, offset, 0.45, EXPERIMENTAL_MARS2 ? 1 : 5);
     if (next === 10) break;
     tokens.push(next);
     generated.push(next);
