@@ -28,6 +28,16 @@ We use an existing external text model for the first release. Mars does **not** 
 - `docs/AI_SETUP.md` — activation guide
 - `docs/TOOL_ROUTING.md` — future automatic tool-routing architecture
 
+## Mars-1 Mini — our original model
+
+**We are also building an AI model from scratch!** See **[Mars-1 Mini training guide](docs/MARS1_MINI.md)**.
+
+The first experiment is a very small original byte-token Transformer, trained with PyTorch on original example text. It starts with random weights; it does not call an external model provider. Its output will be limited and often unreliable at first.
+
+To train without using a terminal, open **[GitHub Actions](https://github.com/CORMACTHEGOD/mars-ai/actions)** and manually run **Train original Mars-1 Mini (manual)**. The workflow gives you a downloadable checkpoint and sample text.
+
+**This training project is separate from the existing Netlify/Hugging Face backend.** The public website still needs separately hosted inference before Mars-1 Mini can answer visitors.
+
 ## Roadmap
 
 1. **Real AI text chat** (backend code available, deployment configuration pending)
