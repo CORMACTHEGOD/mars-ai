@@ -219,35 +219,62 @@ h1, h2, p { margin-top: 0; }
 }
 
 
-/* Mars-themed scrollbars */
-/* Native scrolling remains available to mouse, touch, trackpad, and keyboard users. */
+/* Custom Mars scroll indicator: a fine orange line and moving dark dot.
+   Native scrollbars are hidden while all original scroll gestures still work. */
+.chat-area,
+.chat-history,
+#chat-form #prompt {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none;
+}
 .chat-area::-webkit-scrollbar,
-.chat-history::-webkit-scrollbar {
-  width: 10px;
+.chat-history::-webkit-scrollbar,
+#chat-form #prompt::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
-.chat-area::-webkit-scrollbar-track,
-.chat-history::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.025);
+.chat-area::-webkit-resizer,
+.chat-history::-webkit-resizer,
+#chat-form #prompt::-webkit-resizer {
+  display: none !important;
+}
+.sidebar,
+#view-chat,
+.composer {
+  position: relative;
+}
+#chat-form #prompt {
+  resize: none !important;
+  padding-right: 21px;
+}
+/* The indicator is independent from browser scrollbar rendering. */
+.mars-scroll-track {
+  position: absolute;
+  width: 2px;
   border-radius: 999px;
+  background: rgba(248, 128, 85, 0.28);
+  box-shadow: 0 0 6px rgba(233, 109, 73, 0.08);
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .18s ease;
 }
-.chat-area::-webkit-scrollbar-thumb,
-.chat-history::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #ffb47a 0%, #f27d55 40%, #bd4e43 78%, #863640 100%);
-  border-radius: 999px;
-  border: 2px solid #0c0f16;
-  background-clip: padding-box;
-  min-height: 30px;
+.mars-scroll-track.is-visible {
+  opacity: 1;
 }
-.chat-area::-webkit-scrollbar-thumb:hover,
-.chat-history::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #ffd2a3 0%, #ff9b67 45%, #d45b4b 100%);
-  background-clip: padding-box;
+.mars-scroll-dot {
+  position: absolute;
+  top: 0;
+  left: -5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #242027 0%, #110e14 65%, #08080d 100%);
+  border: 1px solid rgba(250, 138, 89, 0.55);
+  box-shadow: 0 0 0 2px rgba(15, 14, 21, 0.55), 0 0 9px rgba(239, 110, 70, 0.17);
+  transform: translateY(0);
+  will-change: transform;
 }
-@supports (-moz-appearance: none) {
-  .chat-area,
-  .chat-history {
-    scrollbar-width: thin;
-    scrollbar-color: #e57554 #10131b;
-  }
-}
-/* The message composer is deliberately excluded: no scrollbar or resize grip. */
+/* A visible but quiet scrolling cue on the main conversation; history and
+   the input show it only when their content exceeds their available height. */
