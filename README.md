@@ -10,7 +10,7 @@
 - **Mars-1 Mini**, an original, tiny Transformer neural network trained from random weights on original examples
 - **In-browser inference**: the website downloads the model's public ONNX weights and runs them locally in your browser with ONNX Runtime Web. No paid AI API, secret key, separate backend account, or Python installation is required to try the experiment.
 
-**Please expect incoherent or repetitive text.** Mars-1 Mini has just 257,664 parameters, about 37 KB of training text, and a very limited context. Its generated answers are a proof that our own AI model can execute—not a helpful general chatbot yet.
+**Mars-1 Mini is still an experiment, not a general chatbot.** The November 8 dialogue-focused training run used 122 training dialogues, 12 held-out examples, 2,500 steps, and a 260,736-parameter model. It learned to reproduce some common answers such as `hello` and `what is Python?`, but dramatically overfit the small dataset (answer training loss 0.035 versus held-out loss 4.64). Expect unreliable answers to new questions. No paid inference provider is involved.
 
 ## Try our own model
 
@@ -38,7 +38,7 @@ Training is manual or triggered by changes to original model code. Ordinary fron
 - `app.js` — chat history, statuses and UI
 - `mars-mini-browser.js` — actual text generation using our public ONNX weights
 - `models/mars1-mini.onnx` — published trained weights (generated automatically)
-- `mars_mini/model.py`, `corpus.py`, `train.py`, `export_onnx.py` — model implementation and training
+- `mars_mini/model.py`, `corpus.py`, `train_dialogue.py`, `train.py`, `export_onnx.py` — model implementation, focused answer training, and model export
 - `docs/MARS1_MINI.md` — training experiment and limitations
 - `docs/TOOL_ROUTING.md` — future intelligent tool-routing architecture
 
