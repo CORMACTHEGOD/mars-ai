@@ -1,0 +1,13 @@
+# Mars-1 Mini local training files
+artifacts/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.DS_Store
+.env
+.env.*
+!.env.example
+*.pt
+*.pth
