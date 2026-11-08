@@ -22,9 +22,13 @@ jobs:
           python-version: "3.11"
       - name: Install CPU-only Torch
         run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Install ONNX export and verification tools
+        run: python -m pip install onnx onnxruntime numpy
       - name: Test model, tokenizer and checkpoint loading
         run: python -m unittest discover -s tests -v
       - name: Test end-to-end training on a tiny network
         run: |
           python -m mars_mini.train --steps 2 --block-size 24 --width 32 --heads 4 --layers 1 --batch-size 2 --log-every 1 --output artifacts/smoke
           python -m mars_mini.generate --checkpoint artifacts/smoke/mars1-mini.pt --prompt hello --new-tokens 12
+      - name: Export smoke model to browser ONNX and validate logits at multiple lengths
+        run: python -m mars_mini.export_onnx --checkpoint artifacts/smoke/mars1-mini.pt --output artifacts/smoke/browser-model.onnx
