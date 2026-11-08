@@ -1,7 +1,7 @@
 # Deploy the same static interface from GitHub without publishing source files.
 # Netlify serves dist/ and deploys the server-side function separately.
 [build]
-  command = "mkdir -p dist && cp index.html styles.css app.js dist/"
+  command = "mkdir -p dist && cp index.html styles.css app.js mars-mini-browser.js dist/ && if [ -d models ]; then cp -R models dist/; fi"
   publish = "dist"
 
 [functions]

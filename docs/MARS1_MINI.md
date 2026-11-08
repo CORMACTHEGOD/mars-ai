@@ -26,7 +26,7 @@ An honest answer: **not much**. The starter dataset is tiny and the network has 
 3. Click **Run workflow** and choose **150** steps first.
 4. Open the new run to watch its training-loss and validation-loss logs.
 5. After the run succeeds, open **Artifacts** and download `mars-1-mini-trained-weights`.
-6. The ZIP includes `mars1-mini.pt` (the actual trained weights) and `sample.txt` (a genuine generated text sample).
+6. The ZIP includes `mars1-mini.pt` (original PyTorch weights), `mars1-mini.onnx` (browser-ready weights), and `sample.txt` (genuine generated text).
 
 The training workflow runs on changes to the original model code or when **you click Run workflow**; it does not run for ordinary website updates. GitHub Actions has account usage limits; check those in GitHub before scheduling long runs.
 
@@ -45,16 +45,20 @@ python -m mars_mini.serve
 
 The local API listens on `127.0.0.1:8765` and returns JSON for `POST /api/chat` when the model has been trained. It is a **development-only API** with no accounts, authentication or production safeguards. Never expose it directly to the public Internet.
 
-## When can Mars use our model on the website?
+## Run our original Mars model directly on GitHub Pages
 
-The public GitHub Pages frontend **cannot run PyTorch**. To use Mars-1 Mini online, we would need to:
+We can run the model **in the visitor's browser**, without buying a server or calling someone else's AI API.
 
-1. Train and save a working checkpoint.
-2. Host the Python model in a private CPU/GPU service.
-3. Add secure authentication, user quotas, moderation, and a browser-facing chat endpoint.
-4. Point the Mars website to that endpoint.
+1. GitHub Actions trains the same original Mars-1 Mini PyTorch model.
+2. `python -m mars_mini.export_onnx` converts its trained weights into `models/mars1-mini.onnx`.
+3. An ONNX Runtime CPU test verifies that the exported model's results match our PyTorch model at sequence lengths 1, 8, 32 and 96.
+4. The workflow commits the public model weights to `models/`.
+5. `mars-mini-browser.js` downloads the weights and runs them through ONNX Runtime Web in the browser.
+6. The regular [Mars AI website](https://cormacthegod.github.io/mars-ai/) generates a genuine experimental answer. The prompt and output are handled locally on the device.
 
-The previous Netlify/Hugging Face beta code is **separate**. It remains inactive unless you configure provider credentials. Mars-1 Mini does not use it, and this code does not silently replace it.
+This is **not** Python running on GitHub Pages; the static website loads a portable ONNX model and runs numerical operations through WebAssembly.
+
+The model remains extremely small and was only trained on a few examples, so its responses may be nonsense. Search, image generation, plugins and 3D are still separate future projects. The older optional Hugging Face/Netlify backend is unused by this GitHub Pages experiment.
 
 ## What we improve after this experiment
 

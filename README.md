@@ -1,54 +1,53 @@
 # Mars AI 🪐
 
-**Imagine beyond.** Mars is a work-in-progress AI platform for chat, research, coding, plugins, creative tools, and future 3D modeling.
+**Imagine beyond.** Mars is an experimental AI platform for chat, research, coding, creative tools, plugins, and future 3D modeling.
 
-## What's built
+## Current prototype
 
-- A dark, responsive **single-chat** website with the motto **YOUR IDEAS, UNLIMITED**
-- Conversation history saved in the user's browser
-- A custom Mars scrolling indicator and auto-growing message input
-- A **real text-chat backend**, available after the owner configures and deploys it on Netlify
-- A private beta access code, so the AI provider's credits are not exposed to every visitor by default
+- Dark, responsive **single-chat** website with **YOUR IDEAS, UNLIMITED**
+- Conversation history saved to the user's browser
+- Original Mars-themed scroll indicators and an auto-growing message box
+- **Mars-1 Mini**, an original, tiny Transformer neural network trained from random weights on original examples
+- **In-browser inference**: the website downloads the model's public ONNX weights and runs them locally in your browser with ONNX Runtime Web. No paid AI API, secret key, separate backend account, or Python installation is required to try the experiment.
 
-**Important:** The [GitHub Pages preview](https://cormacthegod.github.io/mars-ai/) is *static* and still shows a preview message. The real AI chat only works from a Netlify deployment after the model token and beta settings are supplied.
+**Please expect incoherent or repetitive text.** Mars-1 Mini has just 257,664 parameters, about 37 KB of training text, and a very limited context. Its generated answers are a proof that our own AI model can execute—not a helpful general chatbot yet.
 
-## Activate real AI chat
+## Try our own model
 
-Follow **[docs/AI_SETUP.md](docs/AI_SETUP.md)** for browser-only GitHub + Netlify + Hugging Face setup, without a terminal.
+When the ONNX model has been published by GitHub Actions, visit:
 
-We use an existing external text model for the first release. Mars does **not** yet have its own trained model. Costs, model limits and service requirements apply.
+**https://cormacthegod.github.io/mars-ai/**
+
+The page downloads the model and its numerical inference runtime, then generates text on your computer. It may need a few seconds to initialize. The original model itself is publicly downloadable as `models/mars1-mini.onnx`.
+
+The original code and data are in `mars_mini/`. [See how training works](docs/MARS1_MINI.md).
+
+## How publishing works
+
+1. GitHub Actions trains the original PyTorch model.
+2. `python -m mars_mini.export_onnx` converts the **same trained weights** to a browser-compatible ONNX file.
+3. Python ONNX Runtime validates the exported model against the original PyTorch model at multiple context lengths.
+4. The workflow publishes `models/mars1-mini.onnx` into the public repository.
+5. GitHub Pages serves that file; ONNX Runtime Web handles inference **in the browser**. This is not a hosted Python model, and does not require API requests for each prompt.
+
+Training is manual or triggered by changes to original model code. Ordinary frontend changes do not retrain Mars.
 
 ## Files
 
-- `index.html` — unified chat interface
-- `styles.css` — responsive dark Mars design
-- `app.js` — chat history, UI behavior and AI requests
-- `netlify.toml` — publishes only frontend files, deploys server functions
-- `netlify/functions/chat.mjs` — secure private text AI API
-- `docs/AI_SETUP.md` — activation guide
-- `docs/TOOL_ROUTING.md` — future automatic tool-routing architecture
+- `index.html`, `styles.css` — frontend and design
+- `app.js` — chat history, statuses and UI
+- `mars-mini-browser.js` — actual text generation using our public ONNX weights
+- `models/mars1-mini.onnx` — published trained weights (generated automatically)
+- `mars_mini/model.py`, `corpus.py`, `train.py`, `export_onnx.py` — model implementation and training
+- `docs/MARS1_MINI.md` — training experiment and limitations
+- `docs/TOOL_ROUTING.md` — future intelligent tool-routing architecture
 
-## Mars-1 Mini — our original model
+The earlier optional Hugging Face/Netlify beta code remains in `netlify/functions/` for reference, **but the GitHub Pages chat uses our own model and never calls that provider**. It also never asks visitors for an AI API token.
 
-**We are also building an AI model from scratch!** See **[Mars-1 Mini training guide](docs/MARS1_MINI.md)**.
+## Future work
 
-The first experiment is a very small original byte-token Transformer, trained with PyTorch on original example text. It starts with random weights; it does not call an external model provider. Its output will be limited and often unreliable at first.
+Improved training data and model quality, evaluations, general-use AI chat, search with citations, image understanding and generation, Mars Studio, plugins, and eventually 3D generation. Those future features are not implemented yet.
 
-To train without using a terminal, open **[GitHub Actions](https://github.com/CORMACTHEGOD/mars-ai/actions)** and manually run **Train original Mars-1 Mini (manual)**. The workflow gives you a downloadable checkpoint and sample text.
+## Privacy and safety
 
-**This training project is separate from the existing Netlify/Hugging Face backend.** The public website still needs separately hosted inference before Mars-1 Mini can answer visitors.
-
-## Roadmap
-
-1. **Real AI text chat** (backend code available, deployment configuration pending)
-2. User accounts and proper per-user limits before the general public uses it
-3. Web search with citations and image understanding/generation
-4. Mars Studio: ToolBloom (builder), ProofLab (tester), and FutureFork (alternatives)
-5. Permission-controlled GitHub and other plugins
-6. Mars 3D modeling and exports
-
-## Security
-
-Never put AI-provider tokens, passwords, credentials, or private user data in the public repository. Keep credentials in server-side environment variables. The early beta access code is **not** a substitute for proper production authentication or abuse protection.
-
-Mars is an early-stage project, not a finished AI service.
+Browser inference means prompts are not sent to a Mars inference server. ONNX Runtime Web is downloaded from a third-party code CDN, so standard CDN requests still occur. Avoid sharing sensitive data in public issues or project discussions. Before launching a public paid AI service, we would need proper moderation, abuse protection, accounts, reliability, and a much more capable model.

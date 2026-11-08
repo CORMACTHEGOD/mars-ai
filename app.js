@@ -17,72 +17,34 @@ const previewDisclaimer = document.getElementById("preview-disclaimer");
 const composerNote = document.getElementById("composer-note");
 const sidebarStatus = document.getElementById("sidebar-status");
 const sendButton = document.querySelector(".send-button");
-const ACCESS_STORAGE_KEY = "mars-ai-beta-access-session";
-let aiEnabled = false;
 let isSending = false;
+let marsMiniModule = null;
 
 async function detectAiBackend() {
-  // GitHub Pages is static: no server-side AI endpoint is hosted there.
-  if (location.hostname.endsWith(".github.io")) return false;
+  // Mars-1 Mini is our own model and runs directly on the visitor's device.
+  // We only download public ONNX weights and the numerical inference runtime.
+  // No inference API, user credentials or Hugging Face access code are needed.
+  aiStatus.lastChild.textContent = " Loading Mars-1 Mini…";
+  sidebarStatus.textContent = "Starting the original Mars-1 Mini model in your browser.";
   try {
-    const response = await fetch("/api/chat", { cache: "no-store" });
-    if (!response.ok) return false;
-    const status = await response.json();
-    if (status.service !== "mars-chat") return false;
-
-    if (!status.configured) {
-      aiStatus.lastChild.textContent = " AI setup needed";
-      sidebarStatus.textContent = "The secure AI server is deployed, but the owner has not activated it yet.";
-      composerNote.textContent = "Mars needs a server-side model token and private beta access code to start answering.";
-      return false;
-    }
-    aiEnabled = true;
+    const browserModel = await import("./mars-mini-browser.js?v=mars-local-1");
+    await browserModel.loadMarsMini();
+    marsMiniModule = browserModel;
     aiStatus.classList.add("live");
-    aiStatus.lastChild.textContent = " AI beta";
-    previewDisclaimer.textContent = "Mars can now answer text questions. Search, images and other tools are still coming.";
-    sidebarStatus.textContent = "Mars Chat beta is available here. Other tools are in development.";
-    composerNote.textContent = "Private beta: your first AI message asks for a tester access code. Messages are sent to an AI provider.";
+    aiStatus.lastChild.textContent = " Mars-1 Mini · Local";
+    previewDisclaimer.textContent = "Mars-1 Mini is running in your browser. This early model may produce nonsense.";
+    sidebarStatus.textContent = "Our original tiny model runs on your device. It does not use a paid AI API.";
+    composerNote.textContent = "Mars-1 Mini experiment: 257,664 parameters. Text stays on this device. No web search or image AI yet.";
     return true;
-  } catch {
+  } catch (error) {
+    console.warn("Mars-1 Mini could not start:", error);
+    aiStatus.lastChild.textContent = " Model unavailable";
+    previewDisclaimer.textContent = "Mars-1 Mini has been trained, but its browser model couldn't be loaded here.";
+    sidebarStatus.textContent = "The browser model is unavailable. Check your connection and refresh the page.";
+    composerNote.textContent = "Our model file may still be publishing, or the inference library may not have loaded. Refresh to retry.";
     return false;
   }
 }
-
-function readAccessCode() {
-  try { return sessionStorage.getItem(ACCESS_STORAGE_KEY) || ""; }
-  catch { return ""; }
-}
-function rememberAccessCode(code) {
-  try { sessionStorage.setItem(ACCESS_STORAGE_KEY, code); } catch { /* session storage may be disabled */ }
-}
-function forgetAccessCode() {
-  try { sessionStorage.removeItem(ACCESS_STORAGE_KEY); } catch { /* ignore */ }
-}
-function getAccessCode() {
-  const existing = readAccessCode();
-  if (existing) return existing;
-  // This is a shared beta *access code*, never an AI provider API token.
-  const code = window.prompt("Mars AI private beta: enter your access code (NOT a provider API key):");
-  if (!code || !code.trim()) return null;
-  rememberAccessCode(code.trim());
-  return code.trim();
-}
-
-function buildModelHistory(chat) {
-  // Strip old placeholder replies and any temporary thinking indicator.
-  const messages = chat.messages
-    .filter(entry => !entry.pending && ["user", "assistant"].includes(entry.role))
-    .filter(entry => !(entry.role === "assistant" && entry.text.startsWith("Mars AI preview:")))
-    .slice(-8)
-    .map(entry => ({ role: entry.role, content: entry.text.slice(0, 2500) }));
-  let total = messages.reduce((count, entry) => count + entry.content.length, 0);
-  while (total > 7500 && messages.length > 1) {
-    const oldest = messages.shift();
-    total -= oldest.content.length;
-  }
-  return messages;
-}
-
 
 /* The Mars scrollbar is a separate on-screen indicator. Its position follows
    the real scroll offset instead of relying on browser-specific scrollbar CSS. */
@@ -289,78 +251,60 @@ function newChat() {
 async function submitChat() {
   const text = input.value.trim();
   if (!text) return notify("Write a message first.");
-  if (isSending) return notify("Mars is already answering your message.");
+  if (isSending) return notify("Mars is already generating a message.");
 
   isSending = true;
   sendButton.disabled = true;
   try {
-    const online = await aiReadyPromise;
-    let accessCode = null;
-    if (online) {
-      accessCode = getAccessCode();
-      if (!accessCode) return notify("An access code is required for this private AI beta.");
+    const ready = await aiReadyPromise;
+    if (!ready || !marsMiniModule) {
+      notify("Mars-1 Mini isn't available yet. The trained model may still be publishing. Refresh to retry.");
+      return;
+    }
+    if (selectedImageName) {
+      notify("Mars-1 Mini can only read text for now. Remove the image and try again.");
+      return;
     }
 
     let chat = findActiveChat();
     if (!chat) {
       chat = {
         id: makeId(),
-        title: text.replace(/\s+/g, " ").slice(0, 36),
+        title: text.replace(/\\s+/g, " ").slice(0, 36),
         messages: []
       };
       chats.unshift(chat);
       activeChatId = chat.id;
     }
 
-    const attachmentNote = selectedImageName
-      ? "\n\n[Image selected for preview: " + selectedImageName + " — not uploaded or analyzed]"
-      : "";
-    chat.messages.push({ role: "user", text: text + attachmentNote });
+    // This experimental model accepts one prompt, not multi-turn conversations.
+    // History is saved for display, but it is not sent to a remote service.
+    chat.messages.push({ role: "user", text });
     persist();
     input.value = "";
     resizeComposer();
     clearAttachment();
 
-    if (!online) {
-      chat.messages.push({
-        role: "assistant",
-        text: "Mars AI status: Mars-1 Mini was trained successfully on GitHub, but its model weights are not hosted or connected to this website yet. GitHub Pages only serves the interface, so it cannot run our Python model. We're working toward hosting Mars-1 Mini behind a secure API; its first text generation is still experimental."
-      });
-      persist();
-      renderChat();
-      renderHistory();
-      return;
-    }
-
-    const modelMessages = buildModelHistory(chat);
-    const thinking = { role: "assistant", text: "Mars is thinking…", pending: true };
+    const thinking = { role: "assistant", text: "Mars-1 Mini is generating locally…", pending: true };
     chat.messages.push(thinking);
     if (activeChatId === chat.id) renderChat();
     renderHistory();
 
     try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Mars-Beta-Code": accessCode
-        },
-        body: JSON.stringify({ messages: modelMessages })
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        if (response.status === 401) {
-          forgetAccessCode();
-          throw new Error("The beta code was incorrect. Send another message to enter it again.");
+      const reply = await marsMiniModule.generateMarsMiniReply(text, {
+        maxNewBytes: 90,
+        onProgress: (n, max) => {
+          thinking.text = `Mars-1 Mini is generating locally… ${n}/${max} bytes`;
+          if (activeChatId === chat.id) {
+            const last = messagesList.querySelector(".message:last-child .message-content");
+            if (last) last.textContent = thinking.text;
+          }
         }
-        throw new Error(result.error || "Mars could not answer right now.");
-      }
-      if (typeof result.reply !== "string" || !result.reply.trim()) {
-        throw new Error("Mars received an empty AI answer.");
-      }
-      thinking.text = result.reply;
+      });
+      thinking.text = reply;
     } catch (error) {
-      thinking.text = "Mars couldn't finish that message. " +
+      console.warn("Mars-1 Mini generation error:", error);
+      thinking.text = "Mars-1 Mini couldn't generate text in this browser. " +
         (error instanceof Error ? error.message : "Please try again.");
     }
     delete thinking.pending;
