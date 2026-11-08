@@ -6,11 +6,11 @@
  *
  * The model is a tiny research demo and is NOT a capable or reliable chatbot.
  */
-const MODEL_URL = new URL("./models/mars1-mini.onnx", import.meta.url).href;
+const MODEL_URL = new URL("./models/mars1-mini.onnx?v=dialogue-v2", import.meta.url).href;
 const ORT_VERSION = "1.30.0";
 const ORT_BASE = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`;
 const ORT_MODULE = ORT_BASE + "ort.min.mjs";
-const CONTEXT_SIZE = 96;
+const CONTEXT_SIZE = 128;
 const VOCAB_SIZE = 256;
 let loadPromise = null;
 
@@ -41,7 +41,7 @@ function chooseNextByte(logits, offset, temperature, topK) {
   // Exclude control bytes that cannot reasonably be shown in a chat.
   const indices = [];
   for (let id = 0; id < VOCAB_SIZE; id += 1) {
-    if (id === 10 || id === 9 || (id >= 32 && id < 127) || id >= 160) {
+    if (id === 10 || (id >= 32 && id < 127)) {
       indices.push(id);
     }
   }
@@ -80,7 +80,7 @@ export async function generateMarsMiniReply(prompt, options = {}) {
     if (!Number.isFinite(logits[offset])) {
       throw new Error("Mars returned invalid model values.");
     }
-    const next = chooseNextByte(logits, offset, 0.8, 24);
+    const next = chooseNextByte(logits, offset, 0.45, 5);\n    if (next === 10) break;
     tokens.push(next);
     generated.push(next);
 
