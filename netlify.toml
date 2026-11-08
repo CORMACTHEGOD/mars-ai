@@ -1,0 +1,12 @@
+# Deploy the same static interface from GitHub without publishing source files.
+# Netlify serves dist/ and deploys the server-side function separately.
+[build]
+  command = "mkdir -p dist && cp index.html styles.css app.js dist/"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+
+# Prevent accidental embedding of browser-visible third-party credentials.
+# HF_TOKEN, MARS_BETA_CODE and MARS_ENABLE_AI are set in Netlify's dashboard,
+# NEVER in this repository.
