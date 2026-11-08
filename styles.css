@@ -110,7 +110,29 @@ h1, h2, p { margin-top: 0; }
   font-size: 14px;
   line-height: 1.5;
 }
-.composer textarea::-webkit-scrollbar { display: none; }
+.composer textarea::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+.composer textarea::-webkit-resizer { display: none; }
+
+/* Give the message input a non-resizable, scrollbar-free treatment across
+   Chrome, Edge, Firefox and mobile browsers. */
+#chat-form #prompt {
+  resize: none !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none;
+  overflow-x: hidden;
+}
+#chat-form #prompt::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+#chat-form #prompt::-webkit-resizer {
+  display: none !important;
+}
 .composer textarea::placeholder { color: #788292; }
 .composer-actions, .composer-tools { display: flex; align-items: center; gap: 8px; }
 .composer-actions { justify-content: space-between; }
