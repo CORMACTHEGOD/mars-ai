@@ -50,6 +50,12 @@ We're now researching an **independent Mars-2** model from random weights. It ha
 
 Read the [Mars-2 development and evaluation guide](docs/MARS2_RESEARCH.md). The trained research model is available as an **opt-in browser experiment** at [Mars-2 Lab](https://cormacthegod.github.io/mars-ai/?model=mars2). **The normal website stays on Mars-1.** Mars-2 reproduces some familiar example answers, but still fails most unfamiliar topics and arithmetic, so it is not a general-purpose upgrade.
 
+## Mars Data V3 — fixing the memorization problem
+
+We are preparing **new original training examples and more trustworthy evaluations** before spending more GitHub compute on another model. This is a separate data-quality project, **not** a new trained model or a change to the live website.
+
+The [Mars Data V3 guide](docs/MARS_DATA_V3.md) explains our new practice sets, genuinely held-out word and addition inputs, data-leakage checks, and an exact-memorization baseline. GitHub Actions checks and exports the data **without training anything**.
+
 ## Future work
 
 Improved training data and model quality, evaluations, general-use AI chat, search with citations, image understanding and generation, Mars Studio, plugins, and eventually 3D generation. Those future features are not implemented yet.

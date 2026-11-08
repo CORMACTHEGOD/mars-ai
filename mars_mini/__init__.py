@@ -1,9 +1,20 @@
-"""Mars-1 Mini: an educational, from-scratch byte-level language model.
+"""Mars research package.
 
-This is an original model implementation and training project, not a pretrained
-ChatGPT/Claude replacement. It is experimental and initially very small.
+Data-generation and scoring utilities have no PyTorch dependency.
+The original Transformer model is loaded only when requested.
 """
+from __future__ import annotations
 
-from .model import MarsConfig, MarsMini
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .model import MarsConfig, MarsMini
 
 __all__ = ["MarsConfig", "MarsMini"]
+
+
+def __getattr__(name: str):
+    if name in __all__:
+        from .model import MarsConfig, MarsMini
+        return {"MarsConfig": MarsConfig, "MarsMini": MarsMini}[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
