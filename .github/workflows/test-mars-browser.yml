@@ -10,6 +10,14 @@ on:
       - "models/**"
       - "tests/browser-smoke.cjs"
       - ".github/workflows/test-mars-browser.yml"
+  pull_request:
+    paths:
+      - "index.html"
+      - "app.js"
+      - "mars-mini-browser.js"
+      - "models/**"
+      - "tests/browser-smoke.cjs"
+      - ".github/workflows/test-mars-browser.yml"
   workflow_dispatch:
 
 permissions:
