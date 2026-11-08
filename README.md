@@ -44,6 +44,12 @@ Training is manual or triggered by changes to original model code. Ordinary fron
 
 The earlier optional Hugging Face/Netlify beta code remains in `netlify/functions/` for reference, **but the GitHub Pages chat uses our own model and never calls that provider**. It also never asks visitors for an AI API token.
 
+## Mars-2 Research — stronger testing, not just more memorization
+
+We're now researching an **independent Mars-2** model from random weights. It has more capacity, more originally written and generated training examples, and a separate evaluation of unfamiliar question wording and held-out math problems. It uses **early stopping** to select the best checkpoint.
+
+Read the [Mars-2 development and evaluation guide](docs/MARS2_RESEARCH.md). Its ONNX file is exported separately; **the live website stays on Mars-1** until the new results have been inspected. We do not claim a capable new chatbot without evidence.
+
 ## Future work
 
 Improved training data and model quality, evaluations, general-use AI chat, search with citations, image understanding and generation, Mars Studio, plugins, and eventually 3D generation. Those future features are not implemented yet.

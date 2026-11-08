@@ -1,12 +1,8 @@
-name: Train original Mars-1 Mini (manual)
+name: Retrain Mars-1 Mini (legacy manual)
 
-# Initial training also runs automatically when the model code is merged.
-# UI-only website changes do not trigger retraining; no AI API key is needed.
+# Keep Mars-1 training available as an explicit manual experiment.
+# Adding Mars-2 research code must NOT silently retrain/replace Mars-1.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "mars_mini/**"
   workflow_dispatch:
     inputs:
       steps:

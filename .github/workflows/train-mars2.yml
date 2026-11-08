@@ -1,0 +1,84 @@
+name: Train Mars-2 Research (original model)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mars_mini/mars2_data.py"
+      - "mars_mini/train_mars2.py"
+      - "mars_mini/evaluate_mars2.py"
+      - ".github/workflows/train-mars2.yml"
+  workflow_dispatch:
+    inputs:
+      steps:
+        description: "Maximum training steps (early stopping may stop sooner)"
+        type: choice
+        default: "1500"
+        required: true
+        options:
+          - "300"
+          - "900"
+          - "1500"
+          - "2400"
+
+concurrency:
+  group: mars2-original-training
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install CPU PyTorch
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Install model verification tools
+        run: python -m pip install onnx onnxruntime numpy
+      - name: Verify Mars model and generalization test sets
+        run: python -m unittest discover -s tests -v
+
+      - name: Train original Mars-2 with early stopping
+        run: |
+          python -m mars_mini.train_mars2 --steps ${{ inputs.steps || '1500' }} --batch-size 16 --eval-every 150 --patience 4
+
+      - name: Evaluate familiar, paraphrased and truly held-out questions
+        run: |
+          python -m mars_mini.evaluate_mars2
+          cat artifacts/mars2-mini/metrics.json
+
+      - name: Export and verify trained weights for browsers
+        run: |
+          python -m mars_mini.export_onnx --checkpoint artifacts/mars2-mini/mars2-mini.pt --output models/mars2-mini.onnx
+
+      - name: Archive original Mars-2 research artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mars2-research-weights-and-evaluation
+          path: |
+            artifacts/mars2-mini/
+            models/mars2-mini.onnx
+          retention-days: 14
+
+      # Publishing the *model file* does not replace the existing Mars-1 chat.
+      # We only switch the site after we inspect the evaluation results.
+      - name: Publish experimental Mars-2 ONNX weights
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add models/mars2-mini.onnx
+          if git diff --cached --quiet; then
+            echo "Model is already up to date."
+          else
+            git commit -m "build: publish separate Mars-2 research model [skip ci]"
+            git push origin HEAD:main
+          fi
