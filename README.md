@@ -56,6 +56,12 @@ We are preparing **new original training examples and more trustworthy evaluatio
 
 The [Mars Data V3 guide](docs/MARS_DATA_V3.md) explains our new practice sets, genuinely held-out word and addition inputs, data-leakage checks, and an exact-memorization baseline. GitHub Actions checks and exports the data **without training anything**.
 
+## Mars original BPE tokenizer experiment
+
+We've built a new [Mars BPE tokenizer](docs/MARS_BPE_TOKENIZER.md) from scratch. It learns common text fragments **only from original Mars Data V3 training examples** and can still encode unfamiliar text.
+
+A separate CPU-only GitHub Actions experiment compares byte-token and BPE-token models using matched training settings and held-out **bits per raw byte**. This research does **not** replace the existing Mars-1 or Mars-2 site models. It uses no API key or external pretrained model.
+
 ## Future work
 
 Improved training data and model quality, evaluations, general-use AI chat, search with citations, image understanding and generation, Mars Studio, plugins, and eventually 3D generation. Those future features are not implemented yet.
