@@ -65,14 +65,16 @@ def example_tensors(
 def create_splits(
     context_size: int, seed: int
 ) -> tuple[tuple[torch.Tensor, torch.Tensor], tuple[torch.Tensor, torch.Tensor]]:
-    all_examples = make_examples()
+    # Keep the core conversation prompts (hello, who are you, etc.) in the
+    # training set. Hold out a fraction of generated definitions/arithmetic
+    # for a genuine, non-overlapping generalization check.
     rng = random.Random(seed)
-    rng.shuffle(all_examples)
-    # These hold-out prompts are NOT used for optimizing weights. Tiny
-    # models may generalize poorly to even slightly different questions.
-    split = int(0.90 * len(all_examples))
-    training = all_examples[:split]
-    validation = all_examples[split:]
+    core = list(DIALOGUES)
+    derived = make_examples()[len(core):]
+    rng.shuffle(derived)
+    split = int(0.85 * len(derived))
+    training = core + derived[:split]
+    validation = derived[split:]
 
     def tensors(examples):
         items = [example_tensors(q, a, context_size) for q, a in examples]
