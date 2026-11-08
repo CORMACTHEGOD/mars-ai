@@ -3,6 +3,7 @@
  * It uses the website, ONNX file and browser model code from the repository.
  */
 const { spawn } = require("node:child_process");
+const { existsSync } = require("node:fs");
 const { chromium } = require("playwright");
 
 async function waitForServer(url) {
@@ -102,6 +103,51 @@ async function main() {
         JSON.stringify(researchReply) + "\n" + errors.join("\n"));
     }
     console.log("Mars-2 opt-in research model generated:", JSON.stringify(researchReply));
+
+    if (existsSync("models/mars-bpe-mini.onnx") &&
+        existsSync("models/mars-bpe-mini.tokenizer.json")) {
+      // This test runs after GitHub Actions publishes the actual ONNX model
+      // AND its matching original tokenizer. PRs without weights still test
+      // all browser code and both preexisting Mars models.
+      await page.goto("http://127.0.0.1:9876/?model=bpe", { waitUntil: "load" });
+      await page.waitForFunction(
+        () => {
+          const el = document.querySelector("#ai-status");
+          return el?.classList.contains("live") ||
+            el?.textContent?.includes("Model unavailable");
+        }, null, { timeout: 90000 }
+      );
+      const badge = await page.locator("#ai-status").innerText();
+      if (!badge.includes("BPE Lab") ||
+          !await page.locator("#ai-status").evaluate(el => el.classList.contains("live"))) {
+        throw new Error("Mars BPE chat failed to load: " +
+          badge + "\\n" + errors.join("\\n"));
+      }
+      if (!await page.locator('[data-model-link="bpe"]').evaluate(
+        el => el.getAttribute("aria-current") === "page"
+      )) {
+        throw new Error("Mars BPE Lab model switcher didn't show active model");
+      }
+      await page.locator("#prompt").fill("hello");
+      await page.locator(".send-button").click();
+      await page.waitForFunction(
+        () => {
+          const messages = [...document.querySelectorAll(".message.assistant .message-content")];
+          return messages.length > 0 &&
+            messages.at(-1).textContent?.length > 0 &&
+            !messages.at(-1).textContent?.includes("generating locally");
+        }, null, { timeout: 120000 }
+      );
+      const result = await page.locator(".message.assistant .message-content").last().innerText();
+      if (!result.trim() || result.includes("couldn't generate") ||
+          result.includes("no readable text this time")) {
+        throw new Error("Mars BPE did not generate actual text: " +
+          JSON.stringify(result) + "\\n" + errors.join("\\n"));
+      }
+      console.log("Mars original BPE browser model generated:", JSON.stringify(result));
+    } else {
+      console.log("BPE weights not yet published: skipping only the BPE end-to-end inference test");
+    }
   } finally {
     if (browser) await browser.close();
     server.kill();
