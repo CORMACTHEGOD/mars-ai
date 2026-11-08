@@ -73,6 +73,35 @@ async function main() {
         "\nBrowser errors: " + errors.join("\n"));
     }
     console.log("Mars-1 Mini generated actual browser text:", JSON.stringify(reply));
+
+    // The opt-in research route must load the SEPARATE Mars-2 weights and
+    // genuinely generate text, while the default site stays on Mars-1.
+    await page.goto("http://127.0.0.1:9876/?model=mars2", { waitUntil: "load" });
+    await page.waitForFunction(
+      () => {
+        const el = document.querySelector("#ai-status");
+        return el?.classList.contains("live") || el?.textContent?.includes("Model unavailable");
+      }, null, { timeout: 90000 }
+    );
+    const mars2Badge = await page.locator("#ai-status").innerText();
+    if (!mars2Badge.includes("Mars-2 Lab")) {
+      throw new Error("Mars-2 did not load: " + mars2Badge + "\n" + errors.join("\n"));
+    }
+    await page.locator("#prompt").fill("hello");
+    await page.locator(".send-button").click();
+    await page.waitForFunction(
+      () => {
+        const el = document.querySelector(".message.assistant .message-content");
+        return Boolean(el?.textContent &&
+          !el.textContent.includes("generating locally"));
+      }, null, { timeout: 120000 }
+    );
+    const researchReply = await page.locator(".message.assistant .message-content").last().innerText();
+    if (!researchReply.trim().startsWith("Hello!")) {
+      throw new Error("Mars-2 expected a trained greeting. Got: " +
+        JSON.stringify(researchReply) + "\n" + errors.join("\n"));
+    }
+    console.log("Mars-2 opt-in research model generated:", JSON.stringify(researchReply));
   } finally {
     if (browser) await browser.close();
     server.kill();

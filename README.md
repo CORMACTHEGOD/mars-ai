@@ -48,7 +48,7 @@ The earlier optional Hugging Face/Netlify beta code remains in `netlify/function
 
 We're now researching an **independent Mars-2** model from random weights. It has more capacity, more originally written and generated training examples, and a separate evaluation of unfamiliar question wording and held-out math problems. It uses **early stopping** to select the best checkpoint.
 
-Read the [Mars-2 development and evaluation guide](docs/MARS2_RESEARCH.md). Its ONNX file is exported separately; **the live website stays on Mars-1** until the new results have been inspected. We do not claim a capable new chatbot without evidence.
+Read the [Mars-2 development and evaluation guide](docs/MARS2_RESEARCH.md). The trained research model is available as an **opt-in browser experiment** at [Mars-2 Lab](https://cormacthegod.github.io/mars-ai/?model=mars2). **The normal website stays on Mars-1.** Mars-2 reproduces some familiar example answers, but still fails most unfamiliar topics and arithmetic, so it is not a general-purpose upgrade.
 
 ## Future work
 
