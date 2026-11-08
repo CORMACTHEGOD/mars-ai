@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#0b0d13">
   <meta name="description" content="Mars AI — one chat to research, create, code, and explore.">
   <title>Mars AI — Imagine beyond</title>
-  <link rel="stylesheet" href="styles.css?v=mars-chat-beta-1">
-  <script src="app.js?v=mars2-lab-1" defer></script>
+  <link rel="stylesheet" href="styles.css?v=mars-bpe-chat-1">
+  <script src="app.js?v=mars-bpe-chat-1" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -20,6 +20,14 @@
       <div class="history-heading"><span>RECENT CHATS</span><button id="clear-history" class="icon-button" type="button" title="Clear saved conversations" aria-label="Clear saved conversations">×</button></div>
       <div id="history" class="chat-history" aria-label="Saved conversations"></div>
       <div class="sidebar-bottom">
+        <nav class="model-picker" aria-label="Choose Mars AI model">
+          <span class="model-picker-label">CHOOSE MODEL</span>
+          <div class="model-picker-links">
+            <a href="./" data-model-link="mars1">Mars-1</a>
+            <a href="?model=mars2" data-model-link="mars2">Mars-2 Lab</a>
+            <a href="?model=bpe" data-model-link="bpe">BPE Lab</a>
+          </div>
+        </nav>
         <div class="status-mini"><span class="status-dot"></span><span>Website preview</span><span class="version">v0.2</span></div>
         <p id="sidebar-status">Mars-1 Mini is our own small neural network, running on your device without paid API calls.</p>
         <a href="https://github.com/CORMACTHEGOD/mars-ai" target="_blank" rel="noopener noreferrer" class="repo-link">View on GitHub <span aria-hidden="true">↗</span></a>

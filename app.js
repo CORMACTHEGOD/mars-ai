@@ -1,9 +1,12 @@
 /* Mars AI public frontend preview: no AI requests or API secrets are used here. */
 "use strict";
 
-const EXPERIMENTAL_MARS2 = new URLSearchParams(location.search).get("model") === "mars2";
-const MODEL_NAME = EXPERIMENTAL_MARS2 ? "Mars-2 Research" : "Mars-1 Mini";
-const STORAGE_KEY = EXPERIMENTAL_MARS2 ? "mars-ai-mars2-experiment-chats-v1" : "mars-ai-preview-chats-v1";
+const SELECTED_MODEL = new URLSearchParams(location.search).get("model");
+const EXPERIMENTAL_MARS2 = SELECTED_MODEL === "mars2";
+const EXPERIMENTAL_BPE = SELECTED_MODEL === "bpe";
+const MODEL_NAME = EXPERIMENTAL_BPE ? "Mars BPE Lab" : EXPERIMENTAL_MARS2 ? "Mars-2 Research" : "Mars-1 Mini";
+const STORAGE_KEY = EXPERIMENTAL_BPE ? "mars-ai-bpe-experiment-chats-v1" :
+  EXPERIMENTAL_MARS2 ? "mars-ai-mars2-experiment-chats-v1" : "mars-ai-preview-chats-v1";
 const historyList = document.getElementById("history");
 const emptyState = document.getElementById("empty-state");
 const messagesList = document.getElementById("messages");
@@ -19,6 +22,10 @@ const previewDisclaimer = document.getElementById("preview-disclaimer");
 const composerNote = document.getElementById("composer-note");
 const sidebarStatus = document.getElementById("sidebar-status");
 const sendButton = document.querySelector(".send-button");
+document.querySelectorAll("[data-model-link]").forEach(link => {
+  const mode = EXPERIMENTAL_BPE ? "bpe" : EXPERIMENTAL_MARS2 ? "mars2" : "mars1";
+  if (link.dataset.modelLink === mode) link.setAttribute("aria-current", "page");
+});
 let isSending = false;
 let marsMiniModule = null;
 
@@ -29,14 +36,23 @@ async function detectAiBackend() {
   aiStatus.lastChild.textContent = " Loading " + MODEL_NAME + "…";
   sidebarStatus.textContent = "Starting " + MODEL_NAME + " directly in your browser.";
   try {
-    const browserModel = await import("./mars-mini-browser.js?v=mars2-lab-1");
+    const browserModel = await import("./mars-mini-browser.js?v=mars-bpe-chat-1");
     await browserModel.loadMarsMini();
     marsMiniModule = browserModel;
     aiStatus.classList.add("live");
-    aiStatus.lastChild.textContent = EXPERIMENTAL_MARS2 ? " Mars-2 Lab · Local" : " Mars-1 Mini · Local";
-    previewDisclaimer.textContent = EXPERIMENTAL_MARS2 ? "Mars-2 is an experimental research model, not a reliable general chatbot. Unfamiliar questions often fail." : "Mars-1 Mini is running in your browser. This early model may produce nonsense.";
-    sidebarStatus.textContent = EXPERIMENTAL_MARS2 ? "Mars-2 Lab: an opt-in original-model experiment. No external AI model or paid API is used." : "Our original tiny model runs on your device. It does not use a paid AI API.";
-    composerNote.textContent = EXPERIMENTAL_MARS2 ? "Mars-2 Research: 648,320 parameters. Better at learned examples, still poor at unfamiliar math and facts. Text stays on your device." : "Mars-1 Mini: 260,736 parameters, trained on a small set of example dialogues. Text stays on your device.";
+    aiStatus.lastChild.textContent = EXPERIMENTAL_BPE ? " Mars BPE Lab · Local" : EXPERIMENTAL_MARS2 ? " Mars-2 Lab · Local" : " Mars-1 Mini · Local";
+    previewDisclaimer.textContent = EXPERIMENTAL_BPE
+      ? "Mars BPE Lab uses our new tokenizer with original trained weights. It is an experiment and often gets answers wrong."
+      : EXPERIMENTAL_MARS2 ? "Mars-2 is an experimental research model, not a reliable general chatbot. Unfamiliar questions often fail."
+        : "Mars-1 Mini is running in your browser. This early model may produce nonsense.";
+    sidebarStatus.textContent = EXPERIMENTAL_BPE
+      ? "BPE Lab: messages are encoded by our own trained tokenizer and answered by our own small model, entirely on your device."
+      : EXPERIMENTAL_MARS2 ? "Mars-2 Lab: an opt-in original-model experiment. No external AI model or paid API is used."
+        : "Our original tiny model runs on your device. It does not use a paid AI API.";
+    composerNote.textContent = EXPERIMENTAL_BPE
+      ? "BPE Lab: original 448-token vocabulary, 160-token context, and experimental model. Messages stay on your device."
+      : EXPERIMENTAL_MARS2 ? "Mars-2 Research: 648,320 parameters. Better at learned examples, still poor at unfamiliar math and facts. Text stays on your device."
+        : "Mars-1 Mini: 260,736 parameters, trained on a small set of example dialogues. Text stays on your device.";
     return true;
   } catch (error) {
     console.warn(MODEL_NAME + " could not start:", error);
@@ -260,11 +276,11 @@ async function submitChat() {
   try {
     const ready = await aiReadyPromise;
     if (!ready || !marsMiniModule) {
-      notify("Mars-1 Mini isn't available yet. The trained model may still be publishing. Refresh to retry.");
+      notify(MODEL_NAME + " isn't available yet. The model may still be publishing. Refresh to retry.");
       return;
     }
     if (selectedImageName) {
-      notify("Mars-1 Mini can only read text for now. Remove the image and try again.");
+      notify(MODEL_NAME + " can only read text for now. Remove the image and try again.");
       return;
     }
 

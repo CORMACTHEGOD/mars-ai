@@ -60,7 +60,7 @@ The [Mars Data V3 guide](docs/MARS_DATA_V3.md) explains our new practice sets, g
 
 We've built a new [Mars BPE tokenizer](docs/MARS_BPE_TOKENIZER.md) from scratch. It learns common text fragments **only from original Mars Data V3 training examples** and can still encode unfamiliar text.
 
-A separate CPU-only GitHub Actions experiment compares byte-token and BPE-token models using matched training settings and held-out **bits per raw byte**. This research does **not** replace the existing Mars-1 or Mars-2 site models. It uses no API key or external pretrained model.
+A separate CPU-only GitHub Actions experiment compares byte-token and BPE-token models using matched training settings and held-out **bits per raw byte**. Its new [BPE Lab chat preview](https://cormacthegod.github.io/mars-ai/?model=bpe) connects the matching trained model and vocabulary to website messages, without replacing the ordinary Mars-1 or Mars-2 site models. **It's still experimental and often gives wrong answers.** Read the [BPE chat integration guide](docs/MARS_BPE_CHAT.md) for details. No API key or external pretrained model is used.
 
 ## Future work
 
