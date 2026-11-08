@@ -27,14 +27,14 @@ async function detectAiBackend() {
   aiStatus.lastChild.textContent = " Loading Mars-1 Mini…";
   sidebarStatus.textContent = "Starting the original Mars-1 Mini model in your browser.";
   try {
-    const browserModel = await import("./mars-mini-browser.js?v=mars-local-2");
+    const browserModel = await import("./mars-mini-browser.js?v=mars-dialogue-v2");
     await browserModel.loadMarsMini();
     marsMiniModule = browserModel;
     aiStatus.classList.add("live");
     aiStatus.lastChild.textContent = " Mars-1 Mini · Local";
     previewDisclaimer.textContent = "Mars-1 Mini is running in your browser. This early model may produce nonsense.";
     sidebarStatus.textContent = "Our original tiny model runs on your device. It does not use a paid AI API.";
-    composerNote.textContent = "Mars-1 Mini experiment: 257,664 parameters. Text stays on this device. No web search or image AI yet.";
+    composerNote.textContent = "Mars-1 Mini: 260,736 parameters, trained on a small set of example dialogues. Text stays on your device.";
     return true;
   } catch (error) {
     console.warn("Mars-1 Mini could not start:", error);
