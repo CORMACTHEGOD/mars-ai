@@ -1,6 +1,10 @@
 # Mars-1 Mini — our first ORIGINAL language model
 
-**Status:** Our first training run **completed successfully on November 8, 2026**. The [verified run](https://github.com/CORMACTHEGOD/mars-ai/actions/runs/42490292435) trained **257,664 parameters** from random weights on **36,852 UTF-8 bytes** of our original examples in **150 steps**. Training loss improved from **5.580 to 2.117** and held-out validation loss from **5.271 to 1.770**. The model checkpoint and a genuine (still largely incoherent) text sample were uploaded as an Actions artifact with 7-day retention. No model weights are deployed online yet.
+**Current status (November 8, 2026):** Our [second training run](https://github.com/CORMACTHEGOD/mars-ai/actions/runs/42494963739) completed **2,500 steps** on **122 supervised question-answer pairs**, holding out another **12 examples**. The updated model has **260,736 parameters** and is available as ONNX weights on GitHub Pages. A [real Chromium browser test](https://github.com/CORMACTHEGOD/mars-ai/actions/runs/42495489186) confirmed that sending `hello` to the website generated **"Hello! I am Mars, an experimental AI."** using our model.
+
+**Crucial limitation — overfitting:** The latest training loss dropped to approximately **0.035**, but the held-out loss **rose to 4.64**, so Mars-1 Mini mainly memorized familiar training answers. Unknown questions are still very unreliable. This is **not** evidence of general-purpose intelligence.
+
+**Earlier experiment:** Our [first 150-step run](https://github.com/CORMACTHEGOD/mars-ai/actions/runs/42490292435) used a 257,664-parameter model and about 37 KB of raw text for next-byte prediction. It learned character patterns but output mostly gibberish. The response-focused training method is implemented in `mars_mini/train_dialogue.py`.
 
 This is **Option A: from scratch**. We designed a small decoder-only Transformer with a byte tokenizer and started with random parameters. It does not call ChatGPT, Claude, Hugging Face, or any pretrained model.
 
@@ -21,9 +25,9 @@ An honest answer: **not much**. The starter dataset is tiny and the network has 
 
 ## Train from the GitHub website (no terminal)
 
-**The first 150-step training run starts automatically when the original model code is first merged into `main`.** Future edits to `mars_mini/` also trigger training, but ordinary website changes do not. To train another checkpoint manually:\n\n1. Open the repo's [Actions tab](https://github.com/CORMACTHEGOD/mars-ai/actions).
+**Training runs automatically when original model code under `mars_mini/` changes**, and can also be started manually. The current default is **2,500 response-focused training steps**, using `mars_mini/train_dialogue.py`. Ordinary website changes do not retrain the model. To train another checkpoint manually:\n\n1. Open the repo's [Actions tab](https://github.com/CORMACTHEGOD/mars-ai/actions).
 2. Select **Train original Mars-1 Mini (manual)** on the left.
-3. Click **Run workflow** and choose **150** steps first.
+3. Click **Run workflow** and choose **2,500** steps for the current experimental setup.
 4. Open the new run to watch its training-loss and validation-loss logs.
 5. After the run succeeds, open **Artifacts** and download `mars-1-mini-trained-weights`.
 6. The ZIP includes `mars1-mini.pt` (original PyTorch weights), `mars1-mini.onnx` (browser-ready weights), and `sample.txt` (genuine generated text).
