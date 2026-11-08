@@ -1,8 +1,12 @@
 name: Train original Mars-1 Mini (manual)
 
-# The owner can train from the GitHub website without PowerShell.
-# This workflow does not run on every commit and never needs an API token.
+# Initial training also runs automatically when the model code is merged.
+# UI-only website changes do not trigger retraining; no AI API key is needed.
 on:
+  push:
+    branches: [main]
+    paths:
+      - "mars_mini/**"
   workflow_dispatch:
     inputs:
       steps:
@@ -41,7 +45,7 @@ jobs:
 
       - name: Train the original Mars-1 Mini weights
         run: |
-          python -m mars_mini.train --steps ${{ inputs.steps }} --batch-size 12 --log-every 30
+          python -m mars_mini.train --steps ${{ inputs.steps || '150' }} --batch-size 12 --log-every 30
 
       - name: Generate an experimental sample
         run: |
