@@ -104,8 +104,11 @@ async function main() {
     }
     console.log("Mars-2 opt-in research model generated:", JSON.stringify(researchReply));
 
-    if (existsSync("models/mars-bpe-mini.onnx") &&
-        existsSync("models/mars-bpe-mini.tokenizer.json")) {
+    if (!existsSync("models/mars-bpe-mini.onnx") ||
+        !existsSync("models/mars-bpe-mini.tokenizer.json")) {
+      throw new Error("Published Mars BPE model/vocabulary files are missing.");
+    }
+    {
       // This test runs after GitHub Actions publishes the actual ONNX model
       // AND its matching original tokenizer. PRs without weights still test
       // all browser code and both preexisting Mars models.
@@ -145,8 +148,6 @@ async function main() {
           JSON.stringify(result) + "\\n" + errors.join("\\n"));
       }
       console.log("Mars original BPE browser model generated:", JSON.stringify(result));
-    } else {
-      console.log("BPE weights not yet published: skipping only the BPE end-to-end inference test");
     }
   } finally {
     if (browser) await browser.close();
