@@ -217,3 +217,37 @@ h1, h2, p { margin-top: 0; }
   .automatic-tools { font-size: 10px; }
   .auto-soon, .desktop-only { display: none; }
 }
+
+
+/* Mars-themed scrollbars */
+/* Native scrolling remains available to mouse, touch, trackpad, and keyboard users. */
+.chat-area::-webkit-scrollbar,
+.chat-history::-webkit-scrollbar {
+  width: 10px;
+}
+.chat-area::-webkit-scrollbar-track,
+.chat-history::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.025);
+  border-radius: 999px;
+}
+.chat-area::-webkit-scrollbar-thumb,
+.chat-history::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #ffb47a 0%, #f27d55 40%, #bd4e43 78%, #863640 100%);
+  border-radius: 999px;
+  border: 2px solid #0c0f16;
+  background-clip: padding-box;
+  min-height: 30px;
+}
+.chat-area::-webkit-scrollbar-thumb:hover,
+.chat-history::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ffd2a3 0%, #ff9b67 45%, #d45b4b 100%);
+  background-clip: padding-box;
+}
+@supports (-moz-appearance: none) {
+  .chat-area,
+  .chat-history {
+    scrollbar-width: thin;
+    scrollbar-color: #e57554 #10131b;
+  }
+}
+/* The message composer is deliberately excluded: no scrollbar or resize grip. */
