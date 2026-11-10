@@ -194,8 +194,8 @@ def build_pack(seed: int = 42) -> DataPack:
                    tuple((q, answer) for q in questions), "original_dialogue")
     for i, (question, answer) in enumerate(DIALOGUES):
         add_family(f"v4-original-chat:{i}", "conversation", (
-            (question, answer),
-            (f"Please answer: {question}", answer),
+            (f"Mars, please answer this: {question}", answer),
+            (f"Here is my question for Mars: {question}", answer),
         ), "original_mars_dialogue")
 
     # Avoid reintroducing the explicitly unseen V3 concepts into the V3
