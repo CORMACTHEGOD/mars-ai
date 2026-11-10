@@ -1,0 +1,45 @@
+name: Check Mars Data V4 and local trainer
+
+on:
+  pull_request:
+    paths:
+      - "mars_mini/dataset_v4.py"
+      - "mars_mini/train_v4.py"
+      - "data_tests/test_data_v4.py"
+      - ".github/workflows/check-mars-v4.yml"
+  push:
+    branches: [main]
+    paths:
+      - "mars_mini/dataset_v4.py"
+      - "mars_mini/train_v4.py"
+      - "data_tests/test_data_v4.py"
+      - ".github/workflows/check-mars-v4.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Test V4 family splits and arithmetic rules
+        run: python -m unittest discover -s data_tests -p "test_data_v4.py" -v
+      - name: Check syntax
+        run: python -m compileall -q mars_mini
+      - name: Install CPU-only PyTorch
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Smoke test CPU training, output, and checkpoints
+        run: |
+          python -m mars_mini.train_v4 --minutes 4 --steps 2 --width 64 --layers 1 --merges 8 --eval-every 1 --output artifacts/mars-v4-smoke
+          test -f artifacts/mars-v4-smoke/last.pt
+          test -f artifacts/mars-v4-smoke/best.pt
+          test -f artifacts/mars-v4-smoke/report.json
+      - name: Smoke test resuming a saved run
+        run: |
+          python -m mars_mini.train_v4 --minutes 3 --steps 3 --width 64 --layers 1 --merges 8 --eval-every 1 --output artifacts/mars-v4-smoke --resume
